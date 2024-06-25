@@ -4,6 +4,7 @@ import { Input } from "../components/ui/Input";
 import { RadioButtonInput } from "../components/ui/RadioButton";
 import { UserType } from "../models/Auth/UserType";
 import styles from './RegisterPage.module.css'
+import { ImageViewer } from "../components/ui/ImageViewer";
 
 const EMAIL_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
 const PASSWORD_REGEX = /^[\w.+-]{3,}@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
@@ -18,18 +19,25 @@ export function RegisterPage() {
         DateOfBirth: (new Date()).toUTCString(),
         Type: UserType.Client
     } as RegisterData);
+
+    const [localImagePath, setLocalImagePath] = useState<string|undefined>(undefined);
+
     const [registerFormValid, setRegisterFormValid] = useState({
-        Username: false,
-        Email: false,
-        Password: false,
-        FullName: false,
-        DateOfBirth: false,
-        Address: false,
-        Type: false,
-        ImagePath: false
+        Username: true,
+        Email: true,
+        Password: true,
+        FullName: true,
+        DateOfBirth: true,
+        Address: true,
+        Type: true,
+        ImagePath: true
     });
 
     return <div className={styles.form}>
+        <ImageViewer alt="Profile image" imageUrl={localImagePath} setImageUrl={(url) => {
+            setLocalImagePath(url);
+        }}/>
+
         <Input isValid={registerFormValid.Username} onChangeText={(val) => {
             setRegisterFormData({ ...registerFormData, Username: val });
             setRegisterFormValid({ ...registerFormValid, Username: val.length >= 3 });

@@ -6,7 +6,7 @@
 	background-color: #c69550;
 	color: #4b3823;
 	font-size: 16px;
-	padding: 16px 16px 20px 16px;
+	padding: 10px 10px 14px 10px;
 	border: 1px solid #757575;
 	border-radius: 4px;
 	width: 250px;
@@ -25,7 +25,7 @@
 	position: absolute;
 	pointer-events: none;
 	left: 16px;
-	top: 15px;
+	top: 10px;
 	transition: 0.3s ease all;
 	-moz-transition: 0.3s ease all;
 	-webkit-transition: 0.3s ease all;
@@ -34,7 +34,7 @@
 /* active state */
 .animated__input:focus ~ label,
 .animated__input:active ~ label {
-	top: -12px;
+	top: -10px;
 	left: 14px;
 	font-size: 14px;
 	color: #4b3823;
@@ -43,7 +43,7 @@
 }
 
 .hidden {
-	top: -20px;
+	top: -18px;
 	left: 2px;
 	font-size: 14px;
 	color: #4b3823;
