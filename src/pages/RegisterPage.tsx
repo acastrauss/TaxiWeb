@@ -6,9 +6,7 @@ import { UserType } from "../models/Auth/UserType";
 import styles from './RegisterPage.module.css'
 import { ImageViewer } from "../components/ui/ImageViewer";
 import { Button } from "../components/ui/Button";
-
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-const EMAIL_REGEX = /^[\w.+-]{3,}@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+import { EMAIL_REGEX, PASSWORD_REGEX } from "../utils/Regex";
 
 export function RegisterPage() {
     const [registerFormData, setRegisterFormData] = useState({
@@ -74,6 +72,8 @@ export function RegisterPage() {
                 Type: UserType[val as keyof typeof UserType],
             });
         }} values={[UserType[1], UserType[2]]} />
+
+        <a href="Login">Already have an account? Log In</a>
 
         <Button text="Register" onClick={() => {}}/>
 
