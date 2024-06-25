@@ -5,12 +5,8 @@ export interface RegisterData{
     Email: string;
     Password: string;
     FullName: string;
-    DateOfBirth: Date;
+    DateOfBirth: string;
     Address: string;
     Type: UserType;
     ImagePath: string;
-}
-
-export interface RegisterFormData extends RegisterData {
-    ConfirmPassowrd: string;
 }

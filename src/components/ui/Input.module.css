@@ -1,0 +1,55 @@
+.input__container {
+	position: relative;
+	margin-bottom: 3em;
+}
+.animated__input {
+	background-color: #c69550;
+	color: #4b3823;
+	font-size: 16px;
+	padding: 16px 16px 20px 16px;
+	border: 1px solid #757575;
+	border-radius: 4px;
+	width: 250px;
+	box-sizing: border-box;
+}
+.animated__input:focus {
+	outline: none;
+	border: 1px solid #757575;
+}
+
+.animated__label {
+	background-color: #c69550;
+	color: #4b3823;
+	font-size: 16px;
+	font-weight: normal;
+	position: absolute;
+	pointer-events: none;
+	left: 16px;
+	top: 15px;
+	transition: 0.3s ease all;
+	-moz-transition: 0.3s ease all;
+	-webkit-transition: 0.3s ease all;
+}
+
+/* active state */
+.animated__input:focus ~ label,
+.animated__input:active ~ label {
+	top: -12px;
+	left: 14px;
+	font-size: 14px;
+	color: #4b3823;
+	background-color: #c69550;
+	border-radius: 5px;
+}
+
+.hidden {
+	top: -20px;
+	left: 2px;
+	font-size: 14px;
+	color: #4b3823;
+	background-color: transparent;
+}
+
+.date__padding {
+	padding-left: 90px;
+}
