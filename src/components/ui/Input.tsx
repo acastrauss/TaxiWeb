@@ -28,7 +28,7 @@ export const Input: FC<IProps> = (props) => {
           value={props.textValue}
           className={
             props.isValid
-              ? `${styles.animated__input} ${styles.invalid} ${isDate}`
+              ? `${styles.animated__input} ${isDate}`
               : `${styles.animated__input} ${styles.invalid} ${isDate}`
           }
         />

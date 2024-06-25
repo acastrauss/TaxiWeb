@@ -16,6 +16,9 @@
 	outline: none;
 	border: 1px solid #757575;
 }
+.invalid{
+	border: 2px solid rgb(226, 55, 25);
+}
 
 .animated__label {
 	background-color: #c69550;

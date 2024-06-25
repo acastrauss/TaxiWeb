@@ -5,9 +5,10 @@ import { RadioButtonInput } from "../components/ui/RadioButton";
 import { UserType } from "../models/Auth/UserType";
 import styles from './RegisterPage.module.css'
 import { ImageViewer } from "../components/ui/ImageViewer";
+import { Button } from "../components/ui/Button";
 
-const EMAIL_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-const PASSWORD_REGEX = /^[\w.+-]{3,}@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+const EMAIL_REGEX = /^[\w.+-]{3,}@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
 
 export function RegisterPage() {
     const [registerFormData, setRegisterFormData] = useState({
@@ -73,6 +74,8 @@ export function RegisterPage() {
                 Type: UserType[val as keyof typeof UserType],
             });
         }} values={[UserType[1], UserType[2]]} />
+
+        <Button text="Register" onClick={() => {}}/>
 
     </div>
 }
