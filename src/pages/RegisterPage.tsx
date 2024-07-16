@@ -10,9 +10,12 @@ import { EMAIL_REGEX, PASSWORD_REGEX } from "../utils/Regex";
 import { AuthServiceType } from "../Services/AuthService";
 import { useNavigate, useNavigation } from "react-router-dom";
 import { RoutesNames } from "../Router/Routes";
+import { BlobServiceType } from "../Services/BlobService";
+import { SHA256 } from "crypto-js";
 
 interface IProps{
-    authService: AuthServiceType
+    authService: AuthServiceType,
+    blobService: BlobServiceType
 }
 
 export const RegisterPage: FC<IProps> = (props) => {
@@ -29,6 +32,7 @@ export const RegisterPage: FC<IProps> = (props) => {
     } as RegisterData);
 
     const [localImagePath, setLocalImagePath] = useState<string|undefined>(undefined);
+    const [localImageName, setLocalImageName] = useState<string| undefined>(undefined);
 
     const [registerFormValid, setRegisterFormValid] = useState({
         Username: true,
@@ -53,8 +57,24 @@ export const RegisterPage: FC<IProps> = (props) => {
     }
 
     async function onRegister() {
-        if(!isValid()){
+        if(!isValid() || !localImagePath || !localImageName){
             alert("Please fill out the form");
+            return;
+        }
+
+        const fetchedImg = await fetch(localImagePath);
+        const blobImg = await fetchedImg.blob();
+        const file = new File([blobImg], localImagePath);
+        console.log(localImagePath);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileName', localImageName);
+        const hashedEmail = SHA256(registerFormData.Email).toString();
+
+        const uploadImgRes = await props.blobService.UploadProfileImage(formData, hashedEmail)
+
+        if(!uploadImgRes){
+            alert('Failed uploading image.');
             return;
         }
 
@@ -72,7 +92,7 @@ export const RegisterPage: FC<IProps> = (props) => {
     return <div className={styles.form}>
         <ImageViewer alt="Profile image" imageUrl={localImagePath} setImageUrl={(url) => {
             setLocalImagePath(url);
-        }}/>
+        }} setLocalName={setLocalImageName}/>
 
         <Input isValid={registerFormValid.Username} onChangeText={(val) => {
             setRegisterFormData({ ...registerFormData, Username: val });

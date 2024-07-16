@@ -9,6 +9,7 @@ import { HomePage } from "../pages/Home";
 import { AuthService } from "../Services/AuthService";
 import { JWTStorage } from "../Services/JWTStorage";
 import { PrivateRoute } from "./PrivateRoute";
+import { BlobService } from "../Services/BlobService";
 
 const router = createBrowserRouter([
     {
@@ -27,7 +28,7 @@ const router = createBrowserRouter([
     },
     {
         path: `/${RoutesNames.Register}`,
-        element: <RegisterPage authService={AuthService} />,
+        element: <RegisterPage authService={AuthService} blobService={BlobService}/>,
     },
 
 ]);

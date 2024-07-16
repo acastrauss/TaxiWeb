@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { FCC } from "../../utils/FCC";
 import styles from './ImageViewer.module.css';
 import { IconPlus } from "@tabler/icons-react";
@@ -8,10 +8,12 @@ interface IProps {
     alt: string;
 
     setImageUrl: (url: any) => void;
+    setLocalName: (name: string) => void;
 }
 
 export const ImageViewer: FCC<IProps> = (props) => {
     const imagePickerRef = useRef<null | HTMLInputElement>(null);
+    const [localImageUrl, setLocalImageUrl] = useState<any>(undefined);
 
     function onImageUploaded(event: React.ChangeEvent<HTMLInputElement>) {
         if(!event.target.files){
@@ -21,7 +23,9 @@ export const ImageViewer: FCC<IProps> = (props) => {
         if(file){
             const reader = new FileReader();
             reader.onloadend = () => {
-                props.setImageUrl(reader.result);
+                setLocalImageUrl(reader.result);
+                props.setImageUrl(file);
+                props.setLocalName(file.name);
             };
             reader.readAsDataURL(file);
         }
@@ -29,7 +33,7 @@ export const ImageViewer: FCC<IProps> = (props) => {
 
     const imageContent = useMemo(() => {
         if (props.imageUrl) {
-            return <img className={styles.img} src={props.imageUrl} alt={props.alt} />
+            return <img className={styles.img} src={localImageUrl} alt={props.alt} />
         }
 
         return <>
@@ -44,7 +48,7 @@ export const ImageViewer: FCC<IProps> = (props) => {
             </div>
         </>
 
-    }, [props.imageUrl, imagePickerRef]);
+    }, [localImageUrl, imagePickerRef]);
 
 
     return <div className={styles.root}>
