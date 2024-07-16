@@ -8,8 +8,10 @@ const AUTH_CONTROLLER_URL = `${process.env.REACT_APP_BACKEND_URL}/auth`;
 
 async function Login(loginData: LoginData) {
     try {
-        loginData.Password = sha256(loginData.Password).toString();
-        const res = await axios.post(`${AUTH_CONTROLLER_URL}/login`, {...loginData, Type: 0})
+        if(loginData.Password){
+            loginData.Password = sha256(loginData.Password).toString();
+        }
+        const res = await axios.post(`${AUTH_CONTROLLER_URL}/login`, loginData)
         return res;
     } catch (error) {
         console.error(error);
@@ -20,7 +22,9 @@ async function Login(loginData: LoginData) {
 
 async function Register(registerData: RegisterData) {
     try {
-        registerData.Password = sha256(registerData.Password).toString();
+        if(registerData.Password){
+            registerData.Password = sha256(registerData.Password).toString();
+        }
         const res = await axios.post(`${AUTH_CONTROLLER_URL}/register`, registerData)
         return res;
     } catch (error) {

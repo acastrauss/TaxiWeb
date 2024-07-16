@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { LoginData } from "../models/Auth/LoginData";
+import { AuthType, LoginData } from "../models/Auth/LoginData";
 import styles from './LoginPage.module.css';
 import { Input } from "../components/ui/Input";
 import { EMAIL_REGEX, PASSWORD_REGEX } from "../utils/Regex";
@@ -8,6 +8,8 @@ import { AuthServiceType } from "../Services/AuthService";
 import { JWT } from "../models/Auth/JWT";
 import { JWTStorageType } from "../Services/JWTStorage";
 import { useNavigate } from "react-router-dom";
+import { GoogleAuth } from "../components/auth/GoogleAuth";
+import { GoogleAuthService } from "../Services/Google/GoogleAuth";
 
 interface IProps {
     authService: AuthServiceType
@@ -20,6 +22,7 @@ export const LoginPage: FC<IProps> = (props) => {
     const [loginFormData, setLoginFormData] = useState({
         Email: '',
         Password: '',
+        authType: AuthType.TRADITIONAL
     } as LoginData);
 
     const [loginFormValid, setLoginFormValid] = useState({
@@ -32,14 +35,14 @@ export const LoginPage: FC<IProps> = (props) => {
     }
 
     async function onLogin() {
-        if(!isValid()){
+        if (!isValid()) {
             alert("Please fill out the form");
             return;
         }
 
         const res = await props.authService.Login(loginFormData);
 
-        if(!res){
+        if (!res) {
             alert("Invalid credentials.");
             return;
         }
@@ -55,11 +58,25 @@ export const LoginPage: FC<IProps> = (props) => {
             setLoginFormValid({ ...loginFormValid, Email: EMAIL_REGEX.test(val) });
         }} placeholder="Email:" textValue={loginFormData.Email} type="text" />
 
-        <Input isValid={loginFormValid.Password} onChangeText={(val) => {
+        {loginFormData.authType === AuthType.TRADITIONAL && <Input isValid={loginFormValid.Password} onChangeText={(val) => {
             setLoginFormData({ ...loginFormData, Password: val });
             setLoginFormValid({ ...loginFormValid, Password: PASSWORD_REGEX.test(val) });
-        }} placeholder="Password:" textValue={loginFormData.Password} type="password" />
+        }} placeholder="Password:" textValue={loginFormData.Password ?? ''} type="password" />
+        }
 
+        <div>
+            <GoogleAuth googleAuthService={GoogleAuthService} setUserInfo={(userInfo) => {
+                setLoginFormData({
+                    Password: undefined,
+                    Email: userInfo.email,
+                    authType: AuthType.GOOGLE
+                });
+                setLoginFormValid({
+                    ...loginFormValid,
+                    Email: EMAIL_REGEX.test(userInfo.email),
+                });
+            }} />
+        </div>
         <a href="Register">New here? Register</a>
 
         <Button text="Login" onClick={onLogin} />

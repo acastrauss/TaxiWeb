@@ -12,7 +12,6 @@ import { useNavigate } from "react-router-dom";
 import { RoutesNames } from "../Router/Routes";
 import { BlobServiceType } from "../Services/BlobService";
 import { SHA256 } from "crypto-js";
-import { useGoogleLogin } from '@react-oauth/google';
 import { GoogleAuth } from "../components/auth/GoogleAuth";
 import { GoogleAuthService } from "../Services/Google/GoogleAuth";
 
@@ -61,9 +60,6 @@ export const RegisterPage: FC<IProps> = (props) => {
     }
 
     async function onRegister() {
-        console.log(registerFormValid);
-        console.log(localImagePath);
-        console.log(localImageName);
         if(!isValid() || !localImagePath || !localImageName){
             alert("Please fill out the form");
             return;
@@ -82,6 +78,10 @@ export const RegisterPage: FC<IProps> = (props) => {
         if(!uploadImgRes){
             alert('Failed uploading image.');
             return;
+        }
+
+        if(usedGoogleAuth){
+            registerFormData.Password = undefined;
         }
 
         const res = await props.authService.Register(registerFormData);
@@ -114,7 +114,7 @@ export const RegisterPage: FC<IProps> = (props) => {
         <Input isValid={registerFormValid.Password} onChangeText={(val) => {
             setRegisterFormData({ ...registerFormData, Password: val });
             setRegisterFormValid({ ...registerFormValid, Password: PASSWORD_REGEX.test(val) });
-        }} placeholder="Password:" textValue={registerFormData.Password} type="password" />}
+        }} placeholder="Password:" textValue={registerFormData.Password ?? ''} type="password" />}
 
         <Input isValid={registerFormValid.FullName} onChangeText={(val) => {
             setRegisterFormData({ ...registerFormData, FullName: val });
@@ -141,6 +141,7 @@ export const RegisterPage: FC<IProps> = (props) => {
             <GoogleAuth googleAuthService={GoogleAuthService} setUserInfo={(userInfo) => {
                 setRegisterFormData({
                     ...registerFormData,
+                    Password: undefined,
                     Email: userInfo.email,
                     FullName: userInfo.name,
                 });
