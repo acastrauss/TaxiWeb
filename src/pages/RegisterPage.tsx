@@ -8,10 +8,13 @@ import { ImageViewer } from "../components/ui/ImageViewer";
 import { Button } from "../components/ui/Button";
 import { EMAIL_REGEX, PASSWORD_REGEX } from "../utils/Regex";
 import { AuthServiceType } from "../Services/AuthService";
-import { useNavigate, useNavigation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { RoutesNames } from "../Router/Routes";
 import { BlobServiceType } from "../Services/BlobService";
 import { SHA256 } from "crypto-js";
+import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleAuth } from "../components/auth/GoogleAuth";
+import { GoogleAuthService } from "../Services/Google/GoogleAuth";
 
 interface IProps{
     authService: AuthServiceType,
@@ -33,6 +36,7 @@ export const RegisterPage: FC<IProps> = (props) => {
 
     const [localImagePath, setLocalImagePath] = useState<string|undefined>(undefined);
     const [localImageName, setLocalImageName] = useState<string| undefined>(undefined);
+    const [usedGoogleAuth, setUsedGoogleAuth] = useState(false);
 
     const [registerFormValid, setRegisterFormValid] = useState({
         Username: true,
@@ -57,6 +61,9 @@ export const RegisterPage: FC<IProps> = (props) => {
     }
 
     async function onRegister() {
+        console.log(registerFormValid);
+        console.log(localImagePath);
+        console.log(localImageName);
         if(!isValid() || !localImagePath || !localImageName){
             alert("Please fill out the form");
             return;
@@ -65,7 +72,6 @@ export const RegisterPage: FC<IProps> = (props) => {
         const fetchedImg = await fetch(localImagePath);
         const blobImg = await fetchedImg.blob();
         const file = new File([blobImg], localImagePath);
-        console.log(localImagePath);
         const formData = new FormData();
         formData.append('file', file);
         formData.append('fileName', localImageName);
@@ -104,10 +110,11 @@ export const RegisterPage: FC<IProps> = (props) => {
             setRegisterFormValid({ ...registerFormValid, Email: EMAIL_REGEX.test(val) });
         }} placeholder="Email:" textValue={registerFormData.Email} type="text" />
 
+        {!usedGoogleAuth &&    
         <Input isValid={registerFormValid.Password} onChangeText={(val) => {
             setRegisterFormData({ ...registerFormData, Password: val });
             setRegisterFormValid({ ...registerFormValid, Password: PASSWORD_REGEX.test(val) });
-        }} placeholder="Password:" textValue={registerFormData.Password} type="password" />
+        }} placeholder="Password:" textValue={registerFormData.Password} type="password" />}
 
         <Input isValid={registerFormValid.FullName} onChangeText={(val) => {
             setRegisterFormData({ ...registerFormData, FullName: val });
@@ -129,6 +136,29 @@ export const RegisterPage: FC<IProps> = (props) => {
                 Type: UserType[val as keyof typeof UserType],
             });
         }} values={[UserType[1], UserType[2]]} />
+
+        <div>
+            <GoogleAuth googleAuthService={GoogleAuthService} setUserInfo={(userInfo) => {
+                setRegisterFormData({
+                    ...registerFormData,
+                    Email: userInfo.email,
+                    FullName: userInfo.name,
+                });
+                setRegisterFormValid({
+                    Address: registerFormData.Address.length > 3,
+                    DateOfBirth: true,
+                    Email: EMAIL_REGEX.test(userInfo.email),
+                    FullName: userInfo.name.length > 3,
+                    ImagePath: true,
+                    Password: true,
+                    Username: registerFormData.Username.length > 3,
+                    Type: true
+                });
+                setLocalImagePath(userInfo.picture);
+                setLocalImageName("image.png");
+                setUsedGoogleAuth(true);
+            }}/>
+        </div>
 
         <a href="Login">Already have an account? Log In</a>
 

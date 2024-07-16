@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FCC } from "../../utils/FCC";
 import styles from './ImageViewer.module.css';
 import { IconPlus } from "@tabler/icons-react";
@@ -31,6 +31,24 @@ export const ImageViewer: FCC<IProps> = (props) => {
         }
     }
 
+
+
+    useEffect(() => {
+        async function fetchRemoteImage() {
+            if(props.imageUrl){
+                const fetchedImg = await fetch(props.imageUrl);
+                const blob = await fetchedImg.blob();
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setLocalImageUrl(reader.result);
+                }
+                reader.readAsDataURL(blob);
+            }   
+        }
+
+        fetchRemoteImage();
+    }, [props.imageUrl])
+
     const imageContent = useMemo(() => {
         if (props.imageUrl) {
             return <img className={styles.img} src={localImageUrl} alt={props.alt} />
@@ -48,7 +66,7 @@ export const ImageViewer: FCC<IProps> = (props) => {
             </div>
         </>
 
-    }, [localImageUrl, imagePickerRef]);
+    }, [localImageUrl, imagePickerRef, props.imageUrl]);
 
 
     return <div className={styles.root}>
