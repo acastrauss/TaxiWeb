@@ -7,6 +7,7 @@ import { AuthService } from '../Services/AuthService';
 import { JWTStorage } from '../Services/JWTStorage';
 import { PrivateRoute } from './PrivateRoute';
 import { BlobService } from '../Services/BlobService';
+import Profile from '../pages/Profile';
 
 const router = createBrowserRouter([
 	{
@@ -16,6 +17,12 @@ const router = createBrowserRouter([
 			{
 				path: '',
 				element: <HomePage />,
+				children: [
+					{
+						path: '/profile',
+						element: <Profile />,
+					},
+				],
 			},
 		],
 	},

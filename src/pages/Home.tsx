@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import styles from './Home.module.css';
 
 export function HomePage() {
@@ -58,7 +58,7 @@ export function HomePage() {
 						<Link to='/logout'>Logout</Link>
 					</div>
 				</header>
-				<div>gas</div>
+				<Outlet />
 			</div>
 		</div>
 	);
