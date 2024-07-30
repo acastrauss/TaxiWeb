@@ -8,6 +8,7 @@ import { JWTStorage } from '../Services/JWTStorage';
 import { PrivateRoute } from './PrivateRoute';
 import { BlobService } from '../Services/BlobService';
 import Profile from '../pages/Profile';
+import NewRide from '../pages/NewRide';
 
 const router = createBrowserRouter([
 	{
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
 					{
 						path: '/profile',
 						element: <Profile />,
+					},
+					{
+						path: '/new-ride',
+						element: <NewRide />,
 					},
 				],
 			},
