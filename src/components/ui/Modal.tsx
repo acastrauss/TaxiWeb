@@ -6,6 +6,7 @@ interface ModalProps {
 	onClose: () => void;
 	children?: React.ReactNode;
 	title?: string;
+	disabled?: boolean;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -13,6 +14,7 @@ const Modal: React.FC<ModalProps> = ({
 	onClose,
 	children,
 	title = 'Modal Title',
+	disabled,
 }) => {
 	if (!isOpen) return null;
 
@@ -21,7 +23,11 @@ const Modal: React.FC<ModalProps> = ({
 			<div className={styles.modal}>
 				<div className={styles.header}>
 					<h2 className={styles.title}>{title}</h2>
-					<button className={styles.closeButton} onClick={onClose}>
+					<button
+						className={styles.closeButton}
+						onClick={onClose}
+						disabled={disabled}
+					>
 						&times;
 					</button>
 				</div>

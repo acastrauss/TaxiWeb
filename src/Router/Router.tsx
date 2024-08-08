@@ -2,22 +2,24 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { RoutesNames } from './Routes';
 import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
-import { HomePage } from '../pages/Home';
 import { AuthService } from '../Services/AuthService';
 import { JWTStorage } from '../Services/JWTStorage';
 import { PrivateRoute } from './PrivateRoute';
 import { BlobService } from '../Services/BlobService';
 import Profile from '../pages/Profile';
 import NewRide from '../pages/NewRide';
+import { RideService } from '../Services/RideService';
+import NewRidesDriver from '../pages/NewRidesDriver';
+import HomePage from '../pages/Home';
 
 const router = createBrowserRouter([
 	{
 		path: '/',
-		// element: <PrivateRoute jwtStorage={JWTStorage}/>,
+		element: <PrivateRoute jwtStorage={JWTStorage} />,
 		children: [
 			{
 				path: '',
-				element: <HomePage />,
+				element: <HomePage jwtService={JWTStorage} />,
 				children: [
 					{
 						path: '/profile',
@@ -25,7 +27,11 @@ const router = createBrowserRouter([
 					},
 					{
 						path: '/new-ride',
-						element: <NewRide />,
+						element: <NewRide rideService={RideService} />,
+					},
+					{
+						path: '/new-rides',
+						element: <NewRidesDriver rideService={RideService} />,
 					},
 				],
 			},
