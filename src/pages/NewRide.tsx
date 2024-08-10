@@ -82,9 +82,6 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 				if (response !== null) {
 					const rideStatus: CreateRideResponse =
 						response.data as CreateRideResponse;
-					console.log(response);
-					console.log(response.data);
-					console.log(rideStatus.status);
 
 					if (rideStatus.status === RideStatus.ACCEPTED) {
 						setRideAccepted(true);
@@ -93,7 +90,6 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 							convertToSeconds(rideStatus.estimatedDriverArrival)
 						);
 
-						// Start arrivalInterval
 						arrivalInterval = setInterval(() => {
 							setArrivalTime((prevTime) =>
 								prevTime !== null ? prevTime - 1 : null
@@ -111,7 +107,6 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 				clearInterval(arrivalInterval);
 			}
 
-			// Start rideInterval
 			rideInterval = setInterval(() => {
 				setRideDuration((prevTime) =>
 					prevTime !== null ? prevTime - 1 : null
@@ -123,7 +118,7 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 			if (rideInterval) {
 				clearInterval(rideInterval);
 			}
-			setIsRideActive(false); // Re-enable modal close button
+			setIsRideActive(false);
 		}
 
 		return () => {
@@ -147,8 +142,6 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 		const date = new Date(isoTimestamp);
 		return Math.floor(date.getTime() / 1000);
 	};
-
-	console.log(rideDuration);
 
 	const formatTime = (seconds: number) => {
 		const minutes = Math.floor(seconds / 60);
