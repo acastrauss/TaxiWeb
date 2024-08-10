@@ -1,8 +1,11 @@
 import { FC, useEffect, useState } from 'react';
 import styles from './NewRidesDriver.module.css';
 import { RideServiceType } from '../Services/RideService';
-import { CreateRideResponse } from '../models/Ride';
-import { JWTStorage, JWTStorageType } from '../Services/JWTStorage';
+import {
+	CreateRideResponse,
+	RideStatus,
+	UpdateRideRequest,
+} from '../models/Ride';
 
 interface IProps {
 	rideService: RideServiceType;
@@ -19,11 +22,36 @@ const NewRidesDriver: FC<IProps> = (props) => {
 			}
 		};
 		fetchRides();
-	}, []);
+	}, [props.rideService]);
 
-	const formatTimestamp = (timestamp: number) => {
-		const date = new Date(timestamp);
-		return date.toLocaleString();
+	// const formatTimestamp = (timestamp: number) => {
+	// 	const date = new Date(timestamp);
+	// 	return date.toLocaleString();
+	// };
+
+	const handleAcceptRide = async (
+		ClientEmail: string,
+		RideCreatedAtTimestamp: number
+	) => {
+		const updateRequest: UpdateRideRequest = {
+			ClientEmail,
+			RideCreatedAtTimestamp,
+			Status: RideStatus.ACCEPTED,
+		};
+
+		console.log(updateRequest);
+
+		try {
+			await props.rideService.UpdateRideRequests(updateRequest);
+			const updatedData = await props.rideService.GetNewRides();
+			if (updatedData) {
+				setRideData(updatedData);
+			}
+			alert('Ride accepted successfully!');
+		} catch (error) {
+			console.error('Failed to accept ride:', error);
+			alert('Failed to accept ride.');
+		}
 	};
 
 	return (
@@ -48,7 +76,7 @@ const NewRidesDriver: FC<IProps> = (props) => {
 							key={ride.createdAtTimestamp}
 						>
 							<td className={styles.dataCell}>
-								{formatTimestamp(ride.createdAtTimestamp)}
+								{ride.createdAtTimestamp}
 							</td>
 							<td className={styles.dataCell}>
 								{ride.startAddress}
@@ -65,7 +93,17 @@ const NewRidesDriver: FC<IProps> = (props) => {
 							<td className={styles.dataCell}>{ride.status}</td>
 							<td className={styles.dataCell}>{ride.price}</td>
 							<td className={styles.dataCell}>
-								<button type='button'>Accept</button>
+								<button
+									onClick={() =>
+										handleAcceptRide(
+											ride.clientEmail,
+											ride.createdAtTimestamp
+										)
+									}
+									type='button'
+								>
+									Accept
+								</button>
 							</td>
 						</tr>
 					))}

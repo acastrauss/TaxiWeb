@@ -7,6 +7,8 @@ import {
 	CreateRideResponse,
 	EstimateRide,
 	EstimateRideResponse,
+	GetRideStatusRequest,
+	RideStatus,
 } from '../models/Ride';
 import { RideServiceType } from '../Services/RideService';
 
@@ -14,7 +16,7 @@ interface IProps {
 	rideService: RideServiceType;
 }
 
-const NewRide: FC<IProps> = (props) => {
+const NewRide: FC<IProps> = ({ rideService }) => {
 	const [formData, setFormData] = useState<EstimateRide>({
 		StartAddress: '',
 		EndAddress: '',
@@ -28,14 +30,16 @@ const NewRide: FC<IProps> = (props) => {
 	const [arrivalTime, setArrivalTime] = useState<number | null>(null);
 	const [rideDuration, setRideDuration] = useState<number | null>(null);
 	const [isRideActive, setIsRideActive] = useState(false);
+	const [rideAccepted, setRideAccepted] = useState(false);
 
 	const toggleModal = () => {
 		setModalOpen(!isModalOpen);
 	};
 
 	const handleOrderClick = async () => {
-		const response = await props.rideService.NewRide(formData);
+		const response = await rideService.NewRide(formData);
 		if (response !== null) {
+			console.log(response);
 			setEstimateResponse(response.data);
 			toggleModal();
 		}
@@ -47,33 +51,67 @@ const NewRide: FC<IProps> = (props) => {
 			EndAddress: formData.EndAddress,
 			Price: estimateResponse?.priceEstimate!,
 		});
-		setArrivalTime(estimateResponse?.timeEstimateSeconds!);
+		setArrivalTime(estimateResponse?.estimatedDriverArrivalSeconds!);
 		setIsRideActive(true);
 	};
 
 	useEffect(() => {
 		const createNewRide = async () => {
 			if (newRide !== null) {
-				const response = await props.rideService.CreateNewRide(newRide);
+				const response = await rideService.CreateNewRide(newRide);
+				console.log(response);
 				setNewRideResponse(response?.data || null);
 			}
 		};
 		createNewRide();
-	}, [newRide, props.rideService]);
+	}, [newRide, rideService]);
 
 	useEffect(() => {
-		let arrivalInterval: NodeJS.Timeout;
-		let rideInterval: NodeJS.Timeout;
+		let arrivalInterval: NodeJS.Timeout | null = null;
+		let rideInterval: NodeJS.Timeout | null = null;
 
-		if (arrivalTime !== null && arrivalTime > 0) {
-			arrivalInterval = setInterval(() => {
-				setArrivalTime((prevTime) =>
-					prevTime !== null ? prevTime - 1 : null
-				);
-			}, 1000);
+		if (isRideActive && !rideAccepted) {
+			const interval = setInterval(async () => {
+				const request: GetRideStatusRequest = {
+					ClientEmail: newRideResponse?.clientEmail!,
+					RideCreatedAtTimestamp:
+						newRideResponse?.createdAtTimestamp!,
+				};
+				const response = await rideService.GetRideStatus(request);
+
+				if (response !== null) {
+					const rideStatus: CreateRideResponse =
+						response.data as CreateRideResponse;
+					console.log(response);
+					console.log(response.data);
+					console.log(rideStatus.status);
+
+					if (rideStatus.status === RideStatus.ACCEPTED) {
+						setRideAccepted(true);
+						clearInterval(interval);
+						setRideDuration(
+							convertToSeconds(rideStatus.estimatedDriverArrival)
+						);
+
+						// Start arrivalInterval
+						arrivalInterval = setInterval(() => {
+							setArrivalTime((prevTime) =>
+								prevTime !== null ? prevTime - 1 : null
+							);
+						}, 1000);
+					}
+				}
+			}, 5000);
+
+			return () => clearInterval(interval);
 		}
 
-		if (rideDuration !== null && rideDuration > 0) {
+		if (rideAccepted && arrivalTime === 0) {
+			if (arrivalInterval) {
+				clearInterval(arrivalInterval);
+			}
+
+			// Start rideInterval
 			rideInterval = setInterval(() => {
 				setRideDuration((prevTime) =>
 					prevTime !== null ? prevTime - 1 : null
@@ -81,11 +119,36 @@ const NewRide: FC<IProps> = (props) => {
 			}, 1000);
 		}
 
+		if (rideDuration === 0) {
+			if (rideInterval) {
+				clearInterval(rideInterval);
+			}
+			setIsRideActive(false); // Re-enable modal close button
+		}
+
 		return () => {
-			clearInterval(arrivalInterval);
-			clearInterval(rideInterval);
+			if (arrivalInterval) {
+				clearInterval(arrivalInterval);
+			}
+			if (rideInterval) {
+				clearInterval(rideInterval);
+			}
 		};
-	}, [arrivalTime, rideDuration]);
+	}, [
+		isRideActive,
+		rideAccepted,
+		arrivalTime,
+		rideDuration,
+		newRideResponse,
+		rideService,
+	]);
+
+	const convertToSeconds = (isoTimestamp: number): number => {
+		const date = new Date(isoTimestamp);
+		return Math.floor(date.getTime() / 1000);
+	};
+
+	console.log(rideDuration);
 
 	const formatTime = (seconds: number) => {
 		const minutes = Math.floor(seconds / 60);
@@ -144,7 +207,9 @@ const NewRide: FC<IProps> = (props) => {
 					{arrivalTime === null && (
 						<p>
 							Estimate time{' '}
-							{formatTime(estimateResponse.timeEstimateSeconds)}
+							{formatTime(
+								estimateResponse.estimatedDriverArrivalSeconds
+							)}
 						</p>
 					)}
 					<p>

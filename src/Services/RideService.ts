@@ -1,5 +1,11 @@
 import axios, { AxiosResponse } from 'axios';
-import { CreateRide, CreateRideResponse, EstimateRide } from '../models/Ride';
+import {
+	CreateRide,
+	CreateRideResponse,
+	EstimateRide,
+	GetRideStatusRequest,
+	UpdateRideRequest,
+} from '../models/Ride';
 import { JWTStorage } from './JWTStorage';
 
 const backend = process.env.REACT_APP_BACKEND_URL;
@@ -57,6 +63,44 @@ async function GetNewRides() {
 	}
 }
 
+async function UpdateRideRequests(updateRideRequest: UpdateRideRequest) {
+	const jtwToken = JWTStorage.getJWT();
+	try {
+		const res = await axios.patch(
+			`${backend}/ride/update-ride-status`,
+			updateRideRequest,
+			{
+				headers: {
+					Authorization: `Bearer ${jtwToken?.token}`,
+				},
+			}
+		);
+		console.log(res);
+		return res.data;
+	} catch {
+		return null;
+	}
+}
+
+async function GetRideStatus(getRideStatusRequest: GetRideStatusRequest) {
+	const jtwToken = JWTStorage.getJWT();
+	try {
+		const res = await axios.post(
+			`${backend}/ride/get-ride`,
+			getRideStatusRequest,
+			{
+				headers: {
+					Authorization: `Bearer ${jtwToken?.token}`,
+				},
+			}
+		);
+		console.log(res);
+		return res;
+	} catch {
+		return null;
+	}
+}
+
 export type RideServiceType = {
 	NewRide: (
 		estimateRide: EstimateRide
@@ -65,10 +109,18 @@ export type RideServiceType = {
 		createRide: CreateRide
 	) => Promise<null | AxiosResponse<any, any>>;
 	GetNewRides: () => Promise<CreateRideResponse[] | null>;
+	UpdateRideRequests: (
+		updateRideRequest: UpdateRideRequest
+	) => Promise<null | AxiosResponse<any, any>>;
+	GetRideStatus: (
+		getRideStatusRequest: GetRideStatusRequest
+	) => Promise<null | AxiosResponse<any, any>>;
 };
 
 export const RideService: RideServiceType = {
 	NewRide,
 	CreateNewRide,
 	GetNewRides,
+	UpdateRideRequests,
+	GetRideStatus,
 };

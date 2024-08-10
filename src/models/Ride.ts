@@ -5,7 +5,7 @@ export interface EstimateRide {
 
 export interface EstimateRideResponse {
 	priceEstimate: number;
-	timeEstimateSeconds: number;
+	estimatedDriverArrivalSeconds: number;
 }
 
 export interface CreateRide {
@@ -21,6 +21,24 @@ export interface CreateRideResponse {
 	endAddress: string;
 	price: number;
 	startAddress: string;
-	status: number;
-	driveDuration: number;
+	status: RideStatus;
+	estimatedDriverArrival: number;
+	estimatedRideEnd: number | null;
+}
+
+export interface UpdateRideRequest {
+	ClientEmail: string;
+	RideCreatedAtTimestamp: number;
+	Status: RideStatus;
+}
+
+export enum RideStatus {
+	CREATED = 0,
+	ACCEPTED = 1,
+	COMPLETED = 2,
+}
+
+export interface GetRideStatusRequest {
+	ClientEmail: string;
+	RideCreatedAtTimestamp: number;
 }
