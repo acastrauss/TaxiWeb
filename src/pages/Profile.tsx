@@ -1,167 +1,75 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import styles from './Profile.module.css';
 import { UserType } from '../models/Auth/UserType';
 import { Input } from '../components/ui/Input';
+import * as signalR from '@microsoft/signalr';
+
+interface Msg {
+	user: string;
+	message: string;
+}
 
 const Profile = () => {
-	const [formData, setFormData] = useState({
-		username: '',
-		email: '',
-		password: '',
-		fullName: '',
-		birthDate: '',
-		address: '',
-		userType: UserType.Admin,
-		image: null as File | null,
-	});
+	
+	const [messages, setMessages] = useState<Msg[]>([]);
+    const [connection, setConnection] = useState<signalR.HubConnection|null>(null);
+	const [user, setUser] = useState('');
+    const [message, setMessage] = useState('');
 
-	const handleChange = (
-		e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
-	) => {
-		const { name, value } = e.target;
-		setFormData({
-			...formData,
-			[name]: value,
-		});
-	};
+    useEffect(() => {
+        const newConnection = new signalR.HubConnectionBuilder()
+            .withUrl(`http://localhost:9068/chathub`)
+            .withAutomaticReconnect()
+            .build();
 
-	const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-		if (e.target.files && e.target.files.length > 0) {
-			setFormData({
-				...formData,
-				image: e.target.files[0],
-			});
-		}
-	};
+        setConnection(newConnection);
+    }, []);
 
-	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		console.log(formData);
-	};
+    useEffect(() => {
+        if (connection) {
+            connection.start()
+                .then(() => {
+                    connection.on("ReceiveMessage", (user: string, message: string) => {
+                        setMessages(prevMessages => [...prevMessages, { user, message }]);
+                    });
+                })
+                .catch(err => console.log('Connection failed: ', err));
+        }
+    }, [connection]);
 
-	return (
-		<form className={styles.form} onSubmit={handleSubmit}>
-			<div className={styles.formGroup}>
-				<Input
-					placeholder='Username'
-					textValue={formData.username}
-					type='text'
-					onChangeText={(val) => {
-						setFormData({
-							...formData,
-							username: val,
-						});
-					}}
-					isValid={true}
-				/>
-			</div>
-			<div className={styles.formGroup}>
-				<Input
-					placeholder='Email'
-					textValue={formData.email}
-					type='email'
-					onChangeText={(val) => {
-						setFormData({
-							...formData,
-							email: val,
-						});
-					}}
-					isValid={true}
-				/>
-			</div>
-			<div className={styles.formGroup}>
-				<Input
-					placeholder='Password'
-					textValue={formData.password}
-					type='password'
-					onChangeText={(val) => {
-						setFormData({
-							...formData,
-							password: val,
-						});
-					}}
-					isValid={true}
-				/>
-			</div>
-			<div className={styles.formGroup}>
-				<Input
-					placeholder='Full Name'
-					textValue={formData.fullName}
-					type='text'
-					onChangeText={(val) => {
-						setFormData({
-							...formData,
-							fullName: val,
-						});
-					}}
-					isValid={true}
-				/>
-			</div>
-			<div className={styles.formGroup}>
-				<Input
-					placeholder='Birth Date'
-					textValue={formData.birthDate}
-					type='date'
-					onChangeText={(val) => {
-						setFormData({
-							...formData,
-							birthDate: val,
-						});
-					}}
-					isValid={true}
-				/>
-			</div>
-			<div className={styles.formGroup}>
-				<Input
-					placeholder='Address'
-					textValue={formData.address}
-					type='text'
-					onChangeText={(val) => {
-						setFormData({
-							...formData,
-							address: val,
-						});
-					}}
-					isValid={true}
-				/>
-			</div>
-			<div className={styles.formGroup}>
-				<label htmlFor='userType'>Tip korisnika</label>
-				<select
-					id='userType'
-					name='userType'
-					value={formData.userType}
-					onChange={handleChange}
-				>
-					<option value={UserType.Admin}>Administrator</option>
-					<option value={UserType.Client}>User</option>
-					<option value={UserType.Driver}>Driver</option>
-				</select>
-			</div>
-			<div className={styles.formGroup}>
-				<label htmlFor='image'>Upload Image</label>
-				<input
-					type='file'
-					id='image'
-					name='image'
-					accept='image/*'
-					onChange={handleImageChange}
-				/>
-			</div>
-			{formData.image && (
-				<div className={styles.imagePreview}>
-					<img
-						width={100}
-						src={URL.createObjectURL(formData.image)}
-						alt='Preview'
-					/>
-				</div>
-			)}
-			<button type='submit' className={styles.submitButton}>
-				Submit
-			</button>
-		</form>
-	);
+	const sendMessage = async () => {
+        if (connection && message) {
+            try {
+                await connection.invoke("SendMessage", user, message);
+                setMessage('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    };
+
+    return (
+		<div>
+		<input
+			type="text"
+			placeholder="User"
+			value={user}
+			onChange={(e) => setUser(e.target.value)}
+		/>
+		<input
+			type="text"
+			placeholder="Message"
+			value={message}
+			onChange={(e) => setMessage(e.target.value)}
+		/>
+		<button onClick={sendMessage}>Send</button>
+		<ul>
+			{messages.map((msg, index) => (
+				<li key={index}><strong>{msg.user}:</strong> {msg.message}</li>
+			))}
+		</ul>
+	</div>
+    );
 };
 
 export default Profile;
