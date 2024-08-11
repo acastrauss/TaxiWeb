@@ -6,11 +6,12 @@ import { AuthService } from '../Services/AuthService';
 import { JWTStorage } from '../Services/JWTStorage';
 import { PrivateRoute } from './PrivateRoute';
 import { BlobService } from '../Services/BlobService';
-import Profile from '../pages/Profile';
 import NewRide from '../pages/NewRide';
 import { RideService } from '../Services/RideService';
 import NewRidesDriver from '../pages/NewRidesDriver';
 import HomePage from '../pages/Home';
+import PreviousRidesUser from '../pages/PreviousRidesUser';
+import ProfilePage from '../pages/Profile';
 
 const router = createBrowserRouter([
 	{
@@ -23,7 +24,7 @@ const router = createBrowserRouter([
 				children: [
 					{
 						path: '/profile',
-						element: <Profile />,
+						element: <ProfilePage authService={AuthService} />,
 					},
 					{
 						path: '/new-ride',
@@ -32,6 +33,12 @@ const router = createBrowserRouter([
 					{
 						path: '/new-rides',
 						element: <NewRidesDriver rideService={RideService} />,
+					},
+					{
+						path: '/previous-rides-user',
+						element: (
+							<PreviousRidesUser rideService={RideService} />
+						),
 					},
 				],
 			},

@@ -1,19 +1,36 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FC, FormEvent, useEffect, useState } from 'react';
 import styles from './Profile.module.css';
 import { UserType } from '../models/Auth/UserType';
 import { Input } from '../components/ui/Input';
+import { Profile } from '../models/Auth/Profile';
+import { AuthServiceType } from '../Services/AuthService';
 
-const Profile = () => {
-	const [formData, setFormData] = useState({
+interface IProps {
+	authService: AuthServiceType;
+}
+
+const ProfilePage: FC<IProps> = (props) => {
+	const [formData, setFormData] = useState<Profile>({
 		username: '',
 		email: '',
 		password: '',
-		fullName: '',
-		birthDate: '',
+		fullname: '',
+		dateOfBirth: '',
 		address: '',
-		userType: UserType.Admin,
-		image: null as File | null,
+		type: UserType.Admin,
+		imagePath: '' as string | File,
 	});
+
+	useEffect(() => {
+		const fetchRides = async () => {
+			const data = await props.authService.GetProfile();
+			if (data) {
+				console.log(data);
+				setFormData(data);
+			}
+		};
+		fetchRides();
+	}, [props.authService]);
 
 	const handleChange = (
 		e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -29,7 +46,7 @@ const Profile = () => {
 		if (e.target.files && e.target.files.length > 0) {
 			setFormData({
 				...formData,
-				image: e.target.files[0],
+				imagePath: e.target.files[0],
 			});
 		}
 	};
@@ -86,12 +103,12 @@ const Profile = () => {
 			<div className={styles.formGroup}>
 				<Input
 					placeholder='Full Name'
-					textValue={formData.fullName}
+					textValue={formData.fullname}
 					type='text'
 					onChangeText={(val) => {
 						setFormData({
 							...formData,
-							fullName: val,
+							fullname: val,
 						});
 					}}
 					isValid={true}
@@ -100,12 +117,12 @@ const Profile = () => {
 			<div className={styles.formGroup}>
 				<Input
 					placeholder='Birth Date'
-					textValue={formData.birthDate}
+					textValue={formData.dateOfBirth}
 					type='date'
 					onChangeText={(val) => {
 						setFormData({
 							...formData,
-							birthDate: val,
+							dateOfBirth: val,
 						});
 					}}
 					isValid={true}
@@ -130,7 +147,7 @@ const Profile = () => {
 				<select
 					id='userType'
 					name='userType'
-					value={formData.userType}
+					value={formData.type}
 					onChange={handleChange}
 				>
 					<option value={UserType.Admin}>Administrator</option>
@@ -148,11 +165,15 @@ const Profile = () => {
 					onChange={handleImageChange}
 				/>
 			</div>
-			{formData.image && (
+			{formData.imagePath && (
 				<div className={styles.imagePreview}>
 					<img
 						width={100}
-						src={URL.createObjectURL(formData.image)}
+						src={
+							formData.imagePath instanceof File
+								? URL.createObjectURL(formData.imagePath)
+								: formData.imagePath
+						}
 						alt='Preview'
 					/>
 				</div>
@@ -164,4 +185,4 @@ const Profile = () => {
 	);
 };
 
-export default Profile;
+export default ProfilePage;

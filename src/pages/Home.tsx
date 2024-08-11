@@ -54,7 +54,7 @@ const HomePage: FC<IProps> = (props) => {
 						<li>
 							<Link
 								className={styles.dashboardLink}
-								to='/previous'
+								to='/previous-rides-user'
 							>
 								Previous rides
 							</Link>

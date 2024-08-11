@@ -9,6 +9,7 @@ import {
 	EstimateRideResponse,
 	GetRideStatusRequest,
 	RideStatus,
+	UpdateRideRequest,
 } from '../models/Ride';
 import { RideServiceType } from '../Services/RideService';
 
@@ -16,7 +17,7 @@ interface IProps {
 	rideService: RideServiceType;
 }
 
-const NewRide: FC<IProps> = ({ rideService }) => {
+const NewRide: FC<IProps> = (props) => {
 	const [formData, setFormData] = useState<EstimateRide>({
 		StartAddress: '',
 		EndAddress: '',
@@ -37,7 +38,7 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 	};
 
 	const handleOrderClick = async () => {
-		const response = await rideService.NewRide(formData);
+		const response = await props.rideService.NewRide(formData);
 		if (response !== null) {
 			console.log(response);
 			setEstimateResponse(response.data);
@@ -58,13 +59,13 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 	useEffect(() => {
 		const createNewRide = async () => {
 			if (newRide !== null) {
-				const response = await rideService.CreateNewRide(newRide);
+				const response = await props.rideService.CreateNewRide(newRide);
 				console.log(response);
 				setNewRideResponse(response?.data || null);
 			}
 		};
 		createNewRide();
-	}, [newRide, rideService]);
+	}, [newRide, props.rideService]);
 
 	useEffect(() => {
 		let arrivalInterval: NodeJS.Timeout | null = null;
@@ -77,7 +78,7 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 					RideCreatedAtTimestamp:
 						newRideResponse?.createdAtTimestamp!,
 				};
-				const response = await rideService.GetRideStatus(request);
+				const response = await props.rideService.GetRideStatus(request);
 
 				if (response !== null) {
 					const rideStatus: CreateRideResponse =
@@ -87,38 +88,38 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 						setRideAccepted(true);
 						clearInterval(interval);
 						setRideDuration(
-							convertToSeconds(rideStatus.estimatedDriverArrival)
+							convertToSecondsDifference(
+								rideStatus.estimatedRideEnd!
+							)
 						);
 
 						arrivalInterval = setInterval(() => {
-							setArrivalTime((prevTime) =>
-								prevTime !== null ? prevTime - 1 : null
-							);
+							setArrivalTime((prevTime) => {
+								if (prevTime !== null && prevTime > 0) {
+									return prevTime - 1;
+								} else {
+									clearInterval(arrivalInterval!);
+
+									if (!rideInterval) {
+										rideInterval = setInterval(() => {
+											setRideDuration((prevTime) =>
+												prevTime !== null &&
+												prevTime > 0
+													? prevTime - 1
+													: 0
+											);
+										}, 1000);
+									}
+
+									return 0;
+								}
+							});
 						}, 1000);
 					}
 				}
 			}, 5000);
 
 			return () => clearInterval(interval);
-		}
-
-		if (rideAccepted && arrivalTime === 0) {
-			if (arrivalInterval) {
-				clearInterval(arrivalInterval);
-			}
-
-			rideInterval = setInterval(() => {
-				setRideDuration((prevTime) =>
-					prevTime !== null ? prevTime - 1 : null
-				);
-			}, 1000);
-		}
-
-		if (rideDuration === 0) {
-			if (rideInterval) {
-				clearInterval(rideInterval);
-			}
-			setIsRideActive(false);
 		}
 
 		return () => {
@@ -135,12 +136,57 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 		arrivalTime,
 		rideDuration,
 		newRideResponse,
-		rideService,
+		props.rideService,
 	]);
 
-	const convertToSeconds = (isoTimestamp: number): number => {
+	useEffect(() => {
+		const finishRide = async () => {
+			if (newRideResponse?.clientEmail !== undefined) {
+				const updateRequest: UpdateRideRequest = {
+					ClientEmail: newRideResponse?.clientEmail,
+					RideCreatedAtTimestamp: newRideResponse?.createdAtTimestamp,
+					Status: RideStatus.COMPLETED,
+				};
+
+				console.log(updateRequest);
+
+				try {
+					const response = await props.rideService.UpdateRideRequests(
+						updateRequest
+					);
+					console.log(response);
+					if (response !== null) {
+						setArrivalTime(
+							convertToSecondsDifference(
+								response.data.estimatedDriverArrival
+							)
+						);
+						setRideDuration(
+							convertToSecondsDifference(
+								response.data.estimatedRideEnd
+							)
+						);
+					}
+				} catch (error) {
+					console.error('Failed to accept ride:', error);
+					alert('Failed to accept ride.');
+				}
+			}
+		};
+
+		if (rideDuration === 0) {
+			finishRide();
+			setIsRideActive(false);
+			setModalOpen(false);
+		}
+	}, [rideDuration, newRideResponse, props.rideService]);
+	console.log(rideDuration);
+
+	const convertToSecondsDifference = (isoTimestamp: number): number => {
 		const date = new Date(isoTimestamp);
-		return Math.floor(date.getTime() / 1000);
+		const now = new Date();
+		const differenceInMilliseconds = date.getTime() - now.getTime();
+		return Math.floor(differenceInMilliseconds / 1000);
 	};
 
 	const formatTime = (seconds: number) => {
@@ -206,15 +252,12 @@ const NewRide: FC<IProps> = ({ rideService }) => {
 						</p>
 					)}
 					<p>
-						Real-time countdown to driver's arrival:{' '}
-						{arrivalTime !== null
-							? formatTime(arrivalTime)
-							: 'Arrived'}
+						Countdown to driver's arrival:{' '}
+						{arrivalTime !== null ? formatTime(arrivalTime) : ''}
 					</p>
 					{rideDuration !== null && (
 						<p>
-							Real-time countdown to end of ride:{' '}
-							{formatTime(rideDuration)}
+							Countdown to end of ride: {formatTime(rideDuration)}
 						</p>
 					)}
 					<button onClick={toggleModal} disabled={isRideActive}>

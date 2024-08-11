@@ -63,6 +63,21 @@ async function GetNewRides() {
 	}
 }
 
+async function GetUserRides() {
+	const jtwToken = JWTStorage.getJWT();
+	try {
+		const res = await axios.get(`${backend}/ride/get-user-rides`, {
+			headers: {
+				Authorization: `Bearer ${jtwToken?.token}`,
+			},
+		});
+		console.log(res);
+		return res.data;
+	} catch {
+		return null;
+	}
+}
+
 async function UpdateRideRequests(updateRideRequest: UpdateRideRequest) {
 	const jtwToken = JWTStorage.getJWT();
 	try {
@@ -76,7 +91,7 @@ async function UpdateRideRequests(updateRideRequest: UpdateRideRequest) {
 			}
 		);
 		console.log(res);
-		return res.data;
+		return res;
 	} catch {
 		return null;
 	}
@@ -109,6 +124,7 @@ export type RideServiceType = {
 		createRide: CreateRide
 	) => Promise<null | AxiosResponse<any, any>>;
 	GetNewRides: () => Promise<CreateRideResponse[] | null>;
+	GetUserRides: () => Promise<CreateRideResponse[] | null>;
 	UpdateRideRequests: (
 		updateRideRequest: UpdateRideRequest
 	) => Promise<null | AxiosResponse<any, any>>;
@@ -123,4 +139,5 @@ export const RideService: RideServiceType = {
 	GetNewRides,
 	UpdateRideRequests,
 	GetRideStatus,
+	GetUserRides,
 };
