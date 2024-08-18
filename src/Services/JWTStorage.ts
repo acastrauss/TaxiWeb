@@ -1,5 +1,5 @@
 import { CustomJwtPayload, JWT } from '../models/Auth/JWT';
-import { JwtPayload, jwtDecode } from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 const LOCAL_STORAGE_KEY = 'jwt_token';
 
