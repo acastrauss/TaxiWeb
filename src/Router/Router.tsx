@@ -12,6 +12,7 @@ import NewRidesDriver from '../pages/NewRidesDriver';
 import HomePage from '../pages/Home';
 import PreviousRidesUser from '../pages/PreviousRidesUser';
 import ProfilePage from '../pages/Profile';
+import Chat from '../pages/Chat';
 
 const router = createBrowserRouter([
 	{
@@ -39,6 +40,10 @@ const router = createBrowserRouter([
 						element: (
 							<PreviousRidesUser rideService={RideService} />
 						),
+					},
+					{
+						path: '/chat',
+						element: <Chat authService={AuthService} />,
 					},
 				],
 			},
