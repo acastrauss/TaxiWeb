@@ -6,20 +6,20 @@ import * as signalR from '@microsoft/signalr';
 import { JWTStorage } from '../Services/JWTStorage';
 
 interface Msg {
-	UserEmail: string;
-	Content: string;
-	Timestamp: Date;
-	ClientEmail: string;
-	DriverEmail: string;
-	RideCreadtedAtTimestamp: number;
+	userEmail: string;
+	content: string;
+	timestamp: Date;
+	clientEmail: string;
+	driverEmail: string;
+	rideCreadtedAtTimestamp: number;
 }
 
 interface Chat{
-	ClientEmail: string;
-	DriverEmail: string;
-	RideCreadtedAtTimestamp: number;
-	Messages: Msg[];
-	Status: number;
+	clientEmail: string;
+	driverEmail: string;
+	rideCreadtedAtTimestamp: number;
+	messages: Msg[];
+	status: number;
 }
 
 
@@ -61,11 +61,11 @@ const Profile = () => {
 					});
 					try {
 						connection.invoke("CreateNewOrGetExistingChat", {
-							ClientEmail: "client@client.com",
-							DriverEmail: "driver@driver.com",
-							Messages: [] as any,
-							RideCreadtedAtTimestamp: 638585483571007507,
-							Status: 0
+							clientEmail: "client@client.com",
+							driverEmail: "driver@driver.com",
+							messages: [] as any,
+							rideCreadtedAtTimestamp: 638585483571007507,
+							status: 0
 						} as Chat);
 					} catch (error) {
 						console.error(error)
@@ -79,12 +79,12 @@ const Profile = () => {
         if (connection && message) {
             try {
                 await connection.invoke("SendMessage", {
-					ClientEmail: "client@client.com",
-					DriverEmail: "driver@driver.com",
-					RideCreadtedAtTimestamp: 638585483571007507,
-					Content: message,
-					Timestamp: new Date(),
-					UserEmail: "client@client.com"					
+					clientEmail: "client@client.com",
+					driverEmail: "driver@driver.com",
+					rideCreadtedAtTimestamp: 638585483571007507,
+					content: message,
+					timestamp: new Date(),
+					userEmail: "uzmi email iz jwta"					
 				} as Msg);
                 setMessage('');
             } catch (err) {
@@ -110,7 +110,7 @@ const Profile = () => {
 		<button onClick={sendMessage}>Send</button>
 		<ul>
 			{messages.map((msg, index) => (
-				<li key={index}><strong>{msg.UserEmail}:</strong> {msg.Content}</li>
+				<li key={index}><strong>{msg.userEmail}:</strong> {msg.content}</li>
 			))}
 		</ul>
 	</div>
