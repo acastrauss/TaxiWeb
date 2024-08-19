@@ -12,6 +12,7 @@ export interface CreateRide {
 	StartAddress: string;
 	EndAddress: string;
 	Price: number;
+	EstimatedDriverArrivalSeconds: number;
 }
 
 export interface CreateRideResponse {

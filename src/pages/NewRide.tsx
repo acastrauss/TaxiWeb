@@ -51,6 +51,8 @@ const NewRide: FC<IProps> = (props) => {
 			StartAddress: formData.StartAddress,
 			EndAddress: formData.EndAddress,
 			Price: estimateResponse?.priceEstimate!,
+			EstimatedDriverArrivalSeconds:
+				estimateResponse?.estimatedDriverArrivalSeconds!,
 		});
 		setArrivalTime(estimateResponse?.estimatedDriverArrivalSeconds!);
 		setIsRideActive(true);
@@ -90,6 +92,11 @@ const NewRide: FC<IProps> = (props) => {
 						setRideDuration(
 							convertToSecondsDifference(
 								rideStatus.estimatedRideEnd!
+							)
+						);
+						setArrivalTime(
+							convertToSecondsDifference(
+								rideStatus.estimatedDriverArrival
 							)
 						);
 
