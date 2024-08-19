@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { ChangeEvent, FC, useState } from 'react';
 import { RegisterData } from '../models/Auth/RegisterData';
 import { Input } from '../components/ui/Input';
 import { RadioButtonInput } from '../components/ui/RadioButton';
@@ -33,9 +33,7 @@ export const RegisterPage: FC<IProps> = (props) => {
 		Type: UserType.Client,
 	} as RegisterData);
 
-	const [localImagePath, setLocalImagePath] = useState<string | undefined>(
-		undefined
-	);
+	const [localImagePath, setLocalImagePath] = useState<string | File>('');
 	const [localImageName, setLocalImageName] = useState<string | undefined>(
 		undefined
 	);
@@ -65,15 +63,39 @@ export const RegisterPage: FC<IProps> = (props) => {
 		);
 	};
 
+	const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files && e.target.files.length > 0) {
+			setLocalImageName(e.target.files[0].name);
+			setLocalImagePath(e.target.files[0]);
+			console.log(e.target.files[0]);
+		}
+	};
+
 	async function onRegister() {
 		if (!isValid() || !localImagePath || !localImageName) {
 			alert('Please fill out the form');
 			return;
 		}
 
-		const fetchedImg = await fetch(localImagePath);
-		const blobImg = await fetchedImg.blob();
-		const file = new File([blobImg], localImagePath);
+		let file;
+
+		if (usedGoogleAuth) {
+			const localImagePathString =
+				typeof localImagePath === 'string' ? localImagePath : '';
+			if (localImagePathString) {
+				const fetchedImg = await fetch(localImagePathString);
+				const blobImg = await fetchedImg.blob();
+				file = new File([blobImg], localImageName);
+			}
+		} else {
+			file = localImagePath instanceof File ? localImagePath : null;
+		}
+
+		if (!file) {
+			alert('Failed to process the image.');
+			return;
+		}
+
 		const formData = new FormData();
 		formData.append('file', file);
 		formData.append('fileName', localImageName);
@@ -89,16 +111,16 @@ export const RegisterPage: FC<IProps> = (props) => {
 			return;
 		}
 
-		let registerDataSend = registerFormData;
+		let registerDataSend = { ...registerFormData };
 
 		if (usedGoogleAuth) {
 			registerDataSend.Password = undefined;
+			registerDataSend.ImagePath = uploadImgRes;
 		} else {
-			registerDataSend = {
-				...registerFormData,
-				ImagePath: uploadImgRes,
-			};
+			registerDataSend.ImagePath = uploadImgRes;
 		}
+
+		console.log(registerDataSend);
 
 		const res = await props.authService.Register(registerDataSend);
 
@@ -107,20 +129,33 @@ export const RegisterPage: FC<IProps> = (props) => {
 			return;
 		}
 
-		alert('Registration succesfull, please log in.');
+		alert('Registration successful, please log in.');
 		navigate(`../${RoutesNames.Login}`);
 	}
 
 	return (
 		<div className={styles.form}>
-			<ImageViewer
-				alt='Profile image'
-				imageUrl={localImagePath}
-				setImageUrl={(url) => {
-					setLocalImagePath(url);
-				}}
-				setLocalName={setLocalImageName}
+			<input
+				type='file'
+				id='image'
+				name='image'
+				accept='image/*'
+				onChange={handleImageChange}
 			/>
+
+			{localImagePath && (
+				<div className={styles.imagePreview}>
+					<img
+						width={100}
+						src={
+							localImagePath instanceof File
+								? URL.createObjectURL(localImagePath)
+								: localImagePath
+						}
+						alt='Preview'
+					/>
+				</div>
+			)}
 
 			<Input
 				isValid={registerFormValid.Username}
@@ -225,6 +260,7 @@ export const RegisterPage: FC<IProps> = (props) => {
 				<GoogleAuth
 					googleAuthService={GoogleAuthService}
 					setUserInfo={(userInfo) => {
+						console.log(userInfo.picture);
 						setRegisterFormData({
 							...registerFormData,
 							Password: undefined,
