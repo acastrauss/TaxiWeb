@@ -43,3 +43,10 @@ export interface GetRideStatusRequest {
 	ClientEmail: string;
 	RideCreatedAtTimestamp: number;
 }
+
+export interface DriverRating {
+	ClientEmail: string;
+	RideTimestamp: number;
+	DriverEmail: string;
+	Rating: number;
+}

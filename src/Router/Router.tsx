@@ -12,6 +12,7 @@ import NewRidesDriver from '../pages/NewRidesDriver';
 import HomePage from '../pages/Home';
 import PreviousRidesUser from '../pages/PreviousRidesUser';
 import ProfilePage from '../pages/Profile';
+import { DriverService } from '../Services/DriverService';
 
 const router = createBrowserRouter([
 	{
@@ -28,7 +29,12 @@ const router = createBrowserRouter([
 					},
 					{
 						path: '/new-ride',
-						element: <NewRide rideService={RideService} />,
+						element: (
+							<NewRide
+								rideService={RideService}
+								driverService={DriverService}
+							/>
+						),
 					},
 					{
 						path: '/new-rides',
@@ -36,6 +42,18 @@ const router = createBrowserRouter([
 					},
 					{
 						path: '/previous-rides-user',
+						element: (
+							<PreviousRidesUser rideService={RideService} />
+						),
+					},
+					{
+						path: '/my-rides',
+						element: (
+							<PreviousRidesUser rideService={RideService} />
+						),
+					},
+					{
+						path: '/all-rides',
 						element: (
 							<PreviousRidesUser rideService={RideService} />
 						),
