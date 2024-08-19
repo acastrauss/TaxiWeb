@@ -22,11 +22,9 @@ const HomePage: FC<IProps> = (props) => {
 			const decoded = props.jwtService.decodeJWT(token.token);
 			if (decoded) {
 				setUserRole(decoded.role);
-				console.log(decoded);
 			}
 		}
 	}, [props.jwtService]);
-	console.log(userRole);
 
 	return (
 		<div className={styles.dashboardContainer}>
