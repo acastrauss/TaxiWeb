@@ -7,9 +7,14 @@ import {
 	UpdateRideRequest,
 } from '../models/Ride';
 import Modal from '../components/ui/Modal';
+import { DriverStatus } from '../models/Driver';
+import { DriverServiceType } from '../Services/DriverService';
+import { JWTStorageType } from '../Services/JWTStorage';
 
 interface IProps {
 	rideService: RideServiceType;
+	driverService: DriverServiceType;
+	jwtService: JWTStorageType;
 }
 
 const NewRidesDriver: FC<IProps> = (props) => {
@@ -18,6 +23,10 @@ const NewRidesDriver: FC<IProps> = (props) => {
 	const [isRideActive, setIsRideActive] = useState(false);
 	const [arrivalTime, setArrivalTime] = useState<number | null>(null);
 	const [rideDuration, setRideDuration] = useState<number | null>(null);
+
+	const [driverStatus, setDriverStatus] = useState<DriverStatus>();
+	const [userRole, setUserRole] = useState('');
+	const [userMail, setUserMail] = useState('');
 
 	const arrivalTimeRef = useRef<number | null>(null);
 	const rideDurationRef = useRef<number | null>(null);
@@ -28,6 +37,30 @@ const NewRidesDriver: FC<IProps> = (props) => {
 		const differenceInMilliseconds = date.getTime() - now.getTime();
 		return Math.floor(differenceInMilliseconds / 1000);
 	};
+
+	useEffect(() => {
+		const token = props.jwtService.getJWT();
+		if (token !== null) {
+			const decoded = props.jwtService.decodeJWT(token.token);
+			if (decoded) {
+				setUserRole(decoded.role);
+				setUserMail(decoded.email);
+			}
+		}
+	}, [props.jwtService]);
+
+	useEffect(() => {
+		if (userRole === 'DRIVER') {
+			const fetchRides = async () => {
+				const data = await props.driverService.GetDriverStatus(
+					userMail
+				);
+				setDriverStatus(data);
+			};
+
+			fetchRides();
+		}
+	}, [props.driverService, userMail, userRole]);
 
 	useEffect(() => {
 		const fetchRides = async () => {
@@ -170,6 +203,11 @@ const NewRidesDriver: FC<IProps> = (props) => {
 											ride.clientEmail,
 											ride.createdAtTimestamp
 										)
+									}
+									disabled={
+										driverStatus === DriverStatus.BANNED ||
+										driverStatus ===
+											DriverStatus.NOT_VERIFIED
 									}
 									type='button'
 								>

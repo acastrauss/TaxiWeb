@@ -13,6 +13,7 @@ import HomePage from '../pages/Home';
 import PreviousRidesUser from '../pages/PreviousRidesUser';
 import ProfilePage from '../pages/Profile';
 import { DriverService } from '../Services/DriverService';
+import Verification from '../pages/Verification';
 
 const router = createBrowserRouter([
 	{
@@ -21,7 +22,12 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: '',
-				element: <HomePage jwtService={JWTStorage} />,
+				element: (
+					<HomePage
+						jwtService={JWTStorage}
+						driverService={DriverService}
+					/>
+				),
 				children: [
 					{
 						path: '/profile',
@@ -38,7 +44,13 @@ const router = createBrowserRouter([
 					},
 					{
 						path: '/new-rides',
-						element: <NewRidesDriver rideService={RideService} />,
+						element: (
+							<NewRidesDriver
+								rideService={RideService}
+								driverService={DriverService}
+								jwtService={JWTStorage}
+							/>
+						),
 					},
 					{
 						path: '/previous-rides-user',
@@ -57,6 +69,10 @@ const router = createBrowserRouter([
 						element: (
 							<PreviousRidesUser rideService={RideService} />
 						),
+					},
+					{
+						path: '/verification',
+						element: <Verification driverService={DriverService} />,
 					},
 				],
 			},

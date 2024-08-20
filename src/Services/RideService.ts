@@ -2,7 +2,6 @@ import axios, { AxiosResponse } from 'axios';
 import {
 	CreateRide,
 	CreateRideResponse,
-	DriverRating,
 	EstimateRide,
 	GetRideStatusRequest,
 	UpdateRideRequest,

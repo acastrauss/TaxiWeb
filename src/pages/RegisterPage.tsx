@@ -4,7 +4,6 @@ import { Input } from '../components/ui/Input';
 import { RadioButtonInput } from '../components/ui/RadioButton';
 import { UserType } from '../models/Auth/UserType';
 import styles from './RegisterPage.module.css';
-import { ImageViewer } from '../components/ui/ImageViewer';
 import { Button } from '../components/ui/Button';
 import { EMAIL_REGEX, PASSWORD_REGEX } from '../utils/Regex';
 import { AuthServiceType } from '../Services/AuthService';
