@@ -48,5 +48,5 @@ export interface DriverRating {
 	ClientEmail: string;
 	RideTimestamp: number;
 	DriverEmail: string;
-	Rating: number;
+	Value: number;
 }

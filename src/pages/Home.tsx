@@ -117,11 +117,6 @@ const HomePage: FC<IProps> = (props) => {
 							</Link>
 						</li>
 					)}
-					<li>
-						<Link className={styles.dashboardLink} to='/chat'>
-							Chat
-						</Link>
-					</li>
 				</ul>
 			</nav>
 			<div className={styles.mainContent}>

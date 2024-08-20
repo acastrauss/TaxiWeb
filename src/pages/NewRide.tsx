@@ -41,8 +41,9 @@ const NewRide: FC<IProps> = (props) => {
 	const [ratindDriverInformations, setRatingDriverInformation] =
 		useState<DriverRating | null>(null);
 
-	const [acceptedRide, setAcceptedRide] = useState<CreateRideResponse|null>(null);
-
+	const [acceptedRide, setAcceptedRide] = useState<CreateRideResponse | null>(
+		null
+	);
 
 	const toggleModal = () => {
 		setModalOpen(!isModalOpen);
@@ -99,7 +100,6 @@ const NewRide: FC<IProps> = (props) => {
 					const rideStatus: CreateRideResponse =
 						response.data as CreateRideResponse;
 
-
 					if (rideStatus.status === RideStatus.ACCEPTED) {
 						setAcceptedRide(response.data as CreateRideResponse);
 						setRideAccepted(true);
@@ -119,7 +119,7 @@ const NewRide: FC<IProps> = (props) => {
 							ClientEmail: rideStatus.clientEmail!,
 							RideTimestamp: rideStatus.createdAtTimestamp!,
 							DriverEmail: rideStatus.driverEmail!,
-							Rating: 0!,
+							Value: 0!,
 						});
 
 						arrivalInterval = setInterval(() => {
@@ -171,7 +171,7 @@ const NewRide: FC<IProps> = (props) => {
 		if (ratindDriverInformations !== null) {
 			const ratingRequest = {
 				...ratindDriverInformations,
-				Rating: rating,
+				Value: rating,
 			};
 			try {
 				await props.driverService.RateDriver(ratingRequest);
@@ -298,7 +298,9 @@ const NewRide: FC<IProps> = (props) => {
 					>
 						Accept ride
 					</button>
-					{acceptedRide && <Chat ride={acceptedRide} isClient={true}/>}
+					{acceptedRide && (
+						<Chat ride={acceptedRide} isClient={true} />
+					)}
 				</Modal>
 			)}
 			{isRatingOpen && (
