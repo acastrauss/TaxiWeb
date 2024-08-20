@@ -12,12 +12,12 @@ import NewRidesDriver from '../pages/NewRidesDriver';
 import HomePage from '../pages/Home';
 import PreviousRidesUser from '../pages/PreviousRidesUser';
 import ProfilePage from '../pages/Profile';
-import { DriverService } from '../Services/DriverService';
 import Verification from '../pages/Verification';
+import { DriverService } from '../Services/DriverService';
 
 const router = createBrowserRouter([
 	{
-		path: '/',
+		path: RoutesNames.Home,
 		element: <PrivateRoute jwtStorage={JWTStorage} />,
 		children: [
 			{
@@ -30,11 +30,16 @@ const router = createBrowserRouter([
 				),
 				children: [
 					{
-						path: '/profile',
-						element: <ProfilePage authService={AuthService} />,
+						path: RoutesNames.Profile,
+						element: (
+							<ProfilePage
+								authService={AuthService}
+								blobService={BlobService}
+							/>
+						),
 					},
 					{
-						path: '/new-ride',
+						path: RoutesNames.NewRide,
 						element: (
 							<NewRide
 								rideService={RideService}
@@ -43,7 +48,7 @@ const router = createBrowserRouter([
 						),
 					},
 					{
-						path: '/new-rides',
+						path: RoutesNames.NewRidesDriver,
 						element: (
 							<NewRidesDriver
 								rideService={RideService}
@@ -53,25 +58,25 @@ const router = createBrowserRouter([
 						),
 					},
 					{
-						path: '/previous-rides-user',
+						path: RoutesNames.PreviousRidesUser,
 						element: (
 							<PreviousRidesUser rideService={RideService} />
 						),
 					},
 					{
-						path: '/my-rides',
+						path: RoutesNames.MyRides,
 						element: (
 							<PreviousRidesUser rideService={RideService} />
 						),
 					},
 					{
-						path: '/all-rides',
+						path: RoutesNames.AllRides,
 						element: (
 							<PreviousRidesUser rideService={RideService} />
 						),
 					},
 					{
-						path: '/verification',
+						path: RoutesNames.Verification,
 						element: <Verification driverService={DriverService} />,
 					},
 				],

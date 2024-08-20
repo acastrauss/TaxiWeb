@@ -3,7 +3,7 @@ import { LoginData } from '../models/Auth/LoginData';
 import { RegisterData } from '../models/Auth/RegisterData';
 import sha256 from 'crypto-js/sha256';
 import { JWTStorage } from './JWTStorage';
-import { Profile } from '../models/Auth/Profile';
+import { Profile, UpdateUserProfileRequest } from '../models/Auth/Profile';
 
 const AUTH_CONTROLLER_URL = `${process.env.REACT_APP_BACKEND_URL}/auth`;
 
@@ -36,6 +36,25 @@ async function Register(registerData: RegisterData) {
 	}
 }
 
+async function UpdateProfile(updateData: UpdateUserProfileRequest) {
+	const jtwToken = JWTStorage.getJWT();
+	try {
+		const res = await axios.patch(
+			`${AUTH_CONTROLLER_URL}/update-profile`,
+			updateData,
+			{
+				headers: {
+					Authorization: `Bearer ${jtwToken?.token}`,
+				},
+			}
+		);
+		console.log(res);
+		return res.data;
+	} catch {
+		return null;
+	}
+}
+
 async function GetProfile() {
 	const jtwToken = JWTStorage.getJWT();
 	try {
@@ -57,10 +76,14 @@ export type AuthServiceType = {
 		registerData: RegisterData
 	) => Promise<null | AxiosResponse<any, any>>;
 	GetProfile: () => Promise<Profile | null>;
+	UpdateProfile: (
+		updateData: UpdateUserProfileRequest
+	) => Promise<Profile | null>;
 };
 
 export const AuthService: AuthServiceType = {
 	Login,
 	Register,
 	GetProfile,
+	UpdateProfile,
 };

@@ -135,7 +135,6 @@ const NewRide: FC<IProps> = (props) => {
 											);
 										}, 1000);
 									}
-
 									return 0;
 								}
 							});
