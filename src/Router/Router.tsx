@@ -60,10 +60,6 @@ const router = createBrowserRouter([
 						),
 					},
 					{
-						path: '/chat',
-						element: <Chat authService={AuthService} />,
-          },
-          {
 						path: '/my-rides',
 						element: (
 							<PreviousRidesUser rideService={RideService} />
