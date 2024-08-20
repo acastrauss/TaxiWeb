@@ -119,8 +119,6 @@ export const RegisterPage: FC<IProps> = (props) => {
 			registerDataSend.ImagePath = uploadImgRes;
 		}
 
-		console.log(registerDataSend);
-
 		const res = await props.authService.Register(registerDataSend);
 
 		if (!res) {
@@ -259,7 +257,6 @@ export const RegisterPage: FC<IProps> = (props) => {
 				<GoogleAuth
 					googleAuthService={GoogleAuthService}
 					setUserInfo={(userInfo) => {
-						console.log(userInfo.picture);
 						setRegisterFormData({
 							...registerFormData,
 							Password: undefined,

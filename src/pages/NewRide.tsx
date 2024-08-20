@@ -15,6 +15,7 @@ import {
 import { RideServiceType } from '../Services/RideService';
 import Rating from '../components/ui/Rating';
 import { DriverServiceType } from '../Services/DriverService';
+import Chat from './Chat';
 
 interface IProps {
 	rideService: RideServiceType;
@@ -40,6 +41,9 @@ const NewRide: FC<IProps> = (props) => {
 	const [ratindDriverInformations, setRatingDriverInformation] =
 		useState<DriverRating | null>(null);
 
+	const [acceptedRide, setAcceptedRide] = useState<CreateRideResponse|null>(null);
+
+
 	const toggleModal = () => {
 		setModalOpen(!isModalOpen);
 	};
@@ -51,7 +55,6 @@ const NewRide: FC<IProps> = (props) => {
 	const handleOrderClick = async () => {
 		const response = await props.rideService.NewRide(formData);
 		if (response !== null) {
-			console.log(response);
 			setEstimateResponse(response.data);
 			toggleModal();
 		}
@@ -73,7 +76,6 @@ const NewRide: FC<IProps> = (props) => {
 		const createNewRide = async () => {
 			if (newRide !== null) {
 				const response = await props.rideService.CreateNewRide(newRide);
-				console.log(response);
 				setNewRideResponse(response?.data || null);
 			}
 		};
@@ -97,7 +99,9 @@ const NewRide: FC<IProps> = (props) => {
 					const rideStatus: CreateRideResponse =
 						response.data as CreateRideResponse;
 
+
 					if (rideStatus.status === RideStatus.ACCEPTED) {
+						setAcceptedRide(response.data as CreateRideResponse);
 						setRideAccepted(true);
 						clearInterval(interval);
 						setRideDuration(
@@ -164,7 +168,6 @@ const NewRide: FC<IProps> = (props) => {
 	]);
 
 	const handleRate = async (rating: number) => {
-		console.log(`User rated: ${rating}`);
 		if (ratindDriverInformations !== null) {
 			const ratingRequest = {
 				...ratindDriverInformations,
@@ -189,25 +192,10 @@ const NewRide: FC<IProps> = (props) => {
 					Status: RideStatus.COMPLETED,
 				};
 
-				console.log(updateRequest);
-
 				try {
 					const response = await props.rideService.UpdateRideRequests(
 						updateRequest
 					);
-					console.log(response);
-					// if (response !== null) {
-					// 	setArrivalTime(
-					// 		convertToSecondsDifference(
-					// 			response.data.estimatedDriverArrival
-					// 		)
-					// 	);
-					// 	setRideDuration(
-					// 		convertToSecondsDifference(
-					// 			response.data.estimatedRideEnd
-					// 		)
-					// 	);
-					// }
 				} catch (error) {
 					console.error('Failed to accept ride:', error);
 					alert('Failed to accept ride.');
@@ -216,14 +204,12 @@ const NewRide: FC<IProps> = (props) => {
 		};
 
 		if (rideDuration === 0) {
-			console.log('izdrsava se milion puta');
 			finishRide();
 			setIsRideActive(false);
 			setModalOpen(false);
 			setIsRatingOpen(true);
 		}
 	}, [rideDuration, newRideResponse, props.rideService]);
-	console.log(rideDuration);
 
 	const convertToSecondsDifference = (isoTimestamp: number): number => {
 		const date = new Date(isoTimestamp);
@@ -312,6 +298,7 @@ const NewRide: FC<IProps> = (props) => {
 					>
 						Accept ride
 					</button>
+					{acceptedRide && <Chat ride={acceptedRide} isClient={true}/>}
 				</Modal>
 			)}
 			{isRatingOpen && (
