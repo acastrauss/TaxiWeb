@@ -15,7 +15,16 @@ const Verification: FC<IProps> = (props) => {
 		const fetchDrivers = async () => {
 			const data = await props.driverService.GetAllDrivers();
 			if (data) {
-				setDriversData(data);
+				const driversWithRatings = await Promise.all(
+					data.map(async (driver) => {
+						const rating =
+							await props.driverService.GetDriverRating(
+								driver.email
+							);
+						return { ...driver, rating };
+					})
+				);
+				setDriversData(driversWithRatings);
 			}
 		};
 		fetchDrivers();
@@ -73,6 +82,7 @@ const Verification: FC<IProps> = (props) => {
 						<th className={styles.headerCell}>Full name</th>
 						<th className={styles.headerCell}>Date of birth</th>
 						<th className={styles.headerCell}>Address</th>
+						<th className={styles.headerCell}>Rating</th>
 						<th className={styles.headerCell}>Status</th>
 						<th className={styles.headerCell}>Actions</th>
 					</tr>
@@ -92,6 +102,9 @@ const Verification: FC<IProps> = (props) => {
 							</td>
 							<td className={styles.dataCell}>
 								{driver.address}
+							</td>
+							<td className={styles.dataCell}>
+								{driver.rating === 0 ? 'N/A' : driver.rating}
 							</td>
 							<td className={styles.dataCell}>{driver.status}</td>
 							<td className={styles.dataCell}>

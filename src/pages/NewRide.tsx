@@ -133,13 +133,13 @@ const NewRide: FC<IProps> = (props) => {
 													? prevTime - 1
 													: 0
 											);
-										}, 100);
+										}, 1000);
 									}
 
 									return 0;
 								}
 							});
-						}, 100);
+						}, 1000);
 					}
 				}
 			}, 5000);

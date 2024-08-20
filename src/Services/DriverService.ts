@@ -60,6 +60,27 @@ async function GetDriverStatus(email: string) {
 	}
 }
 
+async function GetDriverRating(email: string) {
+	const jtwToken = JWTStorage.getJWT();
+	try {
+		const res = await axios.post(
+			`${backend}/driver/avg-rating-driver`,
+			{
+				Email: email,
+			},
+			{
+				headers: {
+					Authorization: `Bearer ${jtwToken?.token}`,
+				},
+			}
+		);
+		console.log(res);
+		return res.data;
+	} catch {
+		return null;
+	}
+}
+
 async function UpdateDriverStatus(driverStatus: UpdateDriverStatusData) {
 	const jtwToken = JWTStorage.getJWT();
 	try {
@@ -85,6 +106,7 @@ export type DriverServiceType = {
 	) => Promise<null | AxiosResponse<any, any>>;
 	GetAllDrivers: () => Promise<Driver[] | null>;
 	GetDriverStatus: (email: string) => Promise<any>;
+	GetDriverRating: (email: string) => Promise<any>;
 	UpdateDriverStatus: (
 		driverStatus: UpdateDriverStatusData
 	) => Promise<null | AxiosResponse<any, any>>;
@@ -95,4 +117,5 @@ export const DriverService: DriverServiceType = {
 	GetAllDrivers,
 	GetDriverStatus,
 	UpdateDriverStatus,
+	GetDriverRating,
 };

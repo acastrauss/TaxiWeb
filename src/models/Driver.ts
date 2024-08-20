@@ -13,4 +13,5 @@ export interface UpdateDriverStatusData {
 
 export interface Driver extends Profile {
 	status: DriverStatus;
+	rating?: number;
 }
