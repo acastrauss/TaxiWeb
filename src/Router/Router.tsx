@@ -13,6 +13,8 @@ import HomePage from '../pages/Home';
 import PreviousRidesUser from '../pages/PreviousRidesUser';
 import ProfilePage from '../pages/Profile';
 import Chat from '../pages/Chat';
+import { DriverService } from '../Services/DriverService';
+import Verification from '../pages/Verification';
 
 const router = createBrowserRouter([
 	{
@@ -21,7 +23,12 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: '',
-				element: <HomePage jwtService={JWTStorage} />,
+				element: (
+					<HomePage
+						jwtService={JWTStorage}
+						driverService={DriverService}
+					/>
+				),
 				children: [
 					{
 						path: '/profile',
@@ -29,11 +36,22 @@ const router = createBrowserRouter([
 					},
 					{
 						path: '/new-ride',
-						element: <NewRide rideService={RideService} />,
+						element: (
+							<NewRide
+								rideService={RideService}
+								driverService={DriverService}
+							/>
+						),
 					},
 					{
 						path: '/new-rides',
-						element: <NewRidesDriver rideService={RideService} />,
+						element: (
+							<NewRidesDriver
+								rideService={RideService}
+								driverService={DriverService}
+								jwtService={JWTStorage}
+							/>
+						),
 					},
 					{
 						path: '/previous-rides-user',
@@ -44,6 +62,22 @@ const router = createBrowserRouter([
 					{
 						path: '/chat',
 						element: <Chat authService={AuthService} />,
+          },
+          {
+						path: '/my-rides',
+						element: (
+							<PreviousRidesUser rideService={RideService} />
+						),
+					},
+					{
+						path: '/all-rides',
+						element: (
+							<PreviousRidesUser rideService={RideService} />
+						),
+					},
+					{
+						path: '/verification',
+						element: <Verification driverService={DriverService} />,
 					},
 				],
 			},

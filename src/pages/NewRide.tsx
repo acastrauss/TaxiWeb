@@ -5,6 +5,7 @@ import Modal from '../components/ui/Modal';
 import {
 	CreateRide,
 	CreateRideResponse,
+	DriverRating,
 	EstimateRide,
 	EstimateRideResponse,
 	GetRideStatusRequest,
@@ -12,9 +13,12 @@ import {
 	UpdateRideRequest,
 } from '../models/Ride';
 import { RideServiceType } from '../Services/RideService';
+import Rating from '../components/ui/Rating';
+import { DriverServiceType } from '../Services/DriverService';
 
 interface IProps {
 	rideService: RideServiceType;
+	driverService: DriverServiceType;
 }
 
 const NewRide: FC<IProps> = (props) => {
@@ -32,9 +36,16 @@ const NewRide: FC<IProps> = (props) => {
 	const [rideDuration, setRideDuration] = useState<number | null>(null);
 	const [isRideActive, setIsRideActive] = useState(false);
 	const [rideAccepted, setRideAccepted] = useState(false);
+	const [isRatingOpen, setIsRatingOpen] = useState<boolean>(false);
+	const [ratindDriverInformations, setRatingDriverInformation] =
+		useState<DriverRating | null>(null);
 
 	const toggleModal = () => {
 		setModalOpen(!isModalOpen);
+	};
+
+	const toggleModalRating = () => {
+		setIsRatingOpen(false);
 	};
 
 	const handleOrderClick = async () => {
@@ -100,6 +111,13 @@ const NewRide: FC<IProps> = (props) => {
 							)
 						);
 
+						setRatingDriverInformation({
+							ClientEmail: rideStatus.clientEmail!,
+							RideTimestamp: rideStatus.createdAtTimestamp!,
+							DriverEmail: rideStatus.driverEmail!,
+							Rating: 0!,
+						});
+
 						arrivalInterval = setInterval(() => {
 							setArrivalTime((prevTime) => {
 								if (prevTime !== null && prevTime > 0) {
@@ -146,6 +164,23 @@ const NewRide: FC<IProps> = (props) => {
 		props.rideService,
 	]);
 
+	const handleRate = async (rating: number) => {
+		console.log(`User rated: ${rating}`);
+		if (ratindDriverInformations !== null) {
+			const ratingRequest = {
+				...ratindDriverInformations,
+				Rating: rating,
+			};
+			try {
+				await props.driverService.RateDriver(ratingRequest);
+				toggleModalRating();
+			} catch (error) {
+				console.error('Failed to accept ride:', error);
+				alert('Failed to accept ride.');
+			}
+		}
+	};
+
 	useEffect(() => {
 		const finishRide = async () => {
 			if (newRideResponse?.clientEmail !== undefined) {
@@ -162,18 +197,18 @@ const NewRide: FC<IProps> = (props) => {
 						updateRequest
 					);
 					console.log(response);
-					if (response !== null) {
-						setArrivalTime(
-							convertToSecondsDifference(
-								response.data.estimatedDriverArrival
-							)
-						);
-						setRideDuration(
-							convertToSecondsDifference(
-								response.data.estimatedRideEnd
-							)
-						);
-					}
+					// if (response !== null) {
+					// 	setArrivalTime(
+					// 		convertToSecondsDifference(
+					// 			response.data.estimatedDriverArrival
+					// 		)
+					// 	);
+					// 	setRideDuration(
+					// 		convertToSecondsDifference(
+					// 			response.data.estimatedRideEnd
+					// 		)
+					// 	);
+					// }
 				} catch (error) {
 					console.error('Failed to accept ride:', error);
 					alert('Failed to accept ride.');
@@ -182,9 +217,11 @@ const NewRide: FC<IProps> = (props) => {
 		};
 
 		if (rideDuration === 0) {
+			console.log('izdrsava se milion puta');
 			finishRide();
 			setIsRideActive(false);
 			setModalOpen(false);
+			setIsRatingOpen(true);
 		}
 	}, [rideDuration, newRideResponse, props.rideService]);
 	console.log(rideDuration);
@@ -276,6 +313,16 @@ const NewRide: FC<IProps> = (props) => {
 					>
 						Accept ride
 					</button>
+				</Modal>
+			)}
+			{isRatingOpen && (
+				<Modal
+					isOpen={isRatingOpen}
+					onClose={toggleModalRating}
+					title='My Modal'
+				>
+					<h2>Leave us your rating for the ride!</h2>
+					<Rating onRate={handleRate} />
 				</Modal>
 			)}
 		</>
