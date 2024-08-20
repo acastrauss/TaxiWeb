@@ -2,11 +2,14 @@ import { ChangeEvent, FC, FormEvent, useEffect, useState } from 'react';
 import styles from './Profile.module.css';
 import { UserType } from '../models/Auth/UserType';
 import { Input } from '../components/ui/Input';
-import { Profile } from '../models/Auth/Profile';
+import { Profile, UpdateUserProfileRequest } from '../models/Auth/Profile';
 import { AuthServiceType } from '../Services/AuthService';
+import { BlobServiceType } from '../Services/BlobService';
+import { SHA256 } from 'crypto-js';
 
 interface IProps {
 	authService: AuthServiceType;
+	blobService: BlobServiceType;
 }
 
 const ProfilePage: FC<IProps> = (props) => {
@@ -20,17 +23,45 @@ const ProfilePage: FC<IProps> = (props) => {
 		type: UserType.Admin,
 		imagePath: '' as string | File,
 	});
+	const [originalData, setOriginalData] = useState<Profile>(formData);
+	const [localImagePath, setLocalImagePath] = useState<string | File>('');
+	const [localImageName, setLocalImageName] = useState<string | undefined>(
+		undefined
+	);
+	const [imageUrl, setImageUrl] = useState('');
+
+	function getLastPartOfUrl(url: string) {
+		const parts = url.split('/');
+		const lastPart = parts[parts.length - 1];
+		return lastPart;
+	}
 
 	useEffect(() => {
-		const fetchRides = async () => {
+		const fetchProfile = async () => {
 			const data = await props.authService.GetProfile();
 			if (data) {
 				console.log(data);
 				setFormData(data);
+				setOriginalData(data); // Sačuvaj originalne podatke
 			}
 		};
-		fetchRides();
+		fetchProfile();
 	}, [props.authService]);
+
+	useEffect(() => {
+		const fetchImage = async () => {
+			if (typeof formData.imagePath === 'string') {
+				const blobName = getLastPartOfUrl(formData.imagePath as string);
+				const data = await props.blobService.GetImageUrl(blobName);
+				if (data) {
+					console.log(data);
+					setImageUrl(data);
+				}
+			}
+		};
+
+		fetchImage();
+	}, [props.blobService, formData.imagePath]);
 
 	const handleChange = (
 		e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -48,12 +79,42 @@ const ProfilePage: FC<IProps> = (props) => {
 				...formData,
 				imagePath: e.target.files[0],
 			});
+			setLocalImageName(e.target.files[0].name);
+			setLocalImagePath(e.target.files[0]);
 		}
 	};
 
-	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		console.log(formData);
+
+		const updatedData: UpdateUserProfileRequest = {};
+
+		for (const key in formData) {
+			if (
+				formData[key as keyof Profile] !==
+				originalData[key as keyof Profile]
+			) {
+				(updatedData as any)[key] = formData[key as keyof Profile];
+			}
+		}
+
+		if (localImagePath instanceof File) {
+			const formDataReq = new FormData();
+			formDataReq.append('file', localImagePath);
+			formDataReq.append('fileName', localImageName!);
+			const hashedEmail = SHA256(formData.email).toString();
+
+			const uploadImgRes = await props.blobService.UploadProfileImage(
+				formDataReq,
+				hashedEmail
+			);
+
+			updatedData.imagePath = uploadImgRes;
+		}
+
+		console.log(updatedData);
+
+		await props.authService.UpdateProfile(updatedData);
 	};
 
 	return (
@@ -172,7 +233,7 @@ const ProfilePage: FC<IProps> = (props) => {
 						src={
 							formData.imagePath instanceof File
 								? URL.createObjectURL(formData.imagePath)
-								: formData.imagePath
+								: imageUrl
 						}
 						alt='Preview'
 					/>

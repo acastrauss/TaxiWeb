@@ -10,3 +10,11 @@ export interface Profile {
 	type: UserType;
 	imagePath: string | File | null;
 }
+
+export interface UpdateUserProfileRequest {
+	username?: string;
+	password?: string;
+	fullname?: string;
+	address?: string;
+	imagePath?: string;
+}
