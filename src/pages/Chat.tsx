@@ -4,80 +4,116 @@ import Message from '../components/ui/Message';
 import { AuthServiceType } from '../Services/AuthService';
 import { UserType } from '../models/Auth/UserType';
 import { Profile } from '../models/Auth/Profile';
+import * as signalR from '@microsoft/signalr';
+import { JWTStorage } from '../Services/JWTStorage';
+import { CreateRideResponse } from '../models/Ride';
 
 interface ChatMessage {
-	sender: string;
+	userEmail: string;
 	content: string;
-	timestamp: string;
+	timestamp: Date;
+	clientEmail: string;
+	driverEmail: string;
+	rideCreadtedAtTimestamp: number;
+}
+
+interface Chat{
+	clientEmail: string;
+	driverEmail: string;
+	rideCreatedAtTimestamp: number;
+	messages: ChatMessage[];
+	status: number;
 }
 
 interface IProps {
-	authService: AuthServiceType;
+	ride: CreateRideResponse;
+	isClient: boolean;
 }
 
 const Chat: FC<IProps> = (props) => {
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [newMessage, setNewMessage] = useState<string>('');
-	const [formData, setFormData] = useState<Profile>({
-		username: '',
-		email: '',
-		password: '',
-		fullname: '',
-		dateOfBirth: '',
-		address: '',
-		type: UserType.Admin,
-		imagePath: '' as string | File,
-	});
+	const [chat, setChat] = useState<Chat|null>(null);
+    const [connection, setConnection] = useState<signalR.HubConnection|null>(null);
+    const [message, setMessage] = useState('');
 
-	useEffect(() => {
-		const fetchRides = async () => {
-			const data = await props.authService.GetProfile();
-			if (data) {
-				console.log(data);
-				setFormData(data);
-			}
-		};
-		fetchRides();
-	}, [props.authService]);
+    useEffect(() => {
+        const newConnection = new signalR.HubConnectionBuilder()
+            .withUrl(`http://localhost:9068/chathub`, {
+				accessTokenFactory: () => JWTStorage.getJWT()!.token
+			})
+            .withAutomaticReconnect()
+            .build();
 
-	const handleSend = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		if (newMessage.trim() !== '') {
-			const newMsg: ChatMessage = {
-				sender: formData.fullname,
-				content: newMessage,
-				timestamp: new Date().toLocaleTimeString(),
-			};
-			setMessages([...messages, newMsg]);
-			setNewMessage('');
+        setConnection(newConnection);
+
+		if(newConnection){
+			
 		}
-	};
+    }, []);
 
-	return (
-		<div className={styles.chatContainer}>
-			<div className={styles.messagesContainer}>
-				{messages.map((message, index) => (
-					<Message
-						key={index}
-						sender={message.sender}
-						content={message.content}
-						timestamp={message.timestamp}
-						isOwnMessage={message.sender === formData.fullname}
-					/>
-				))}
-			</div>
-			<form onSubmit={handleSend} className={styles.inputContainer}>
-				<input
-					type='text'
-					value={newMessage}
-					onChange={(e) => setNewMessage(e.target.value)}
-					className={styles.input}
-					placeholder='Type a message...'
-				/>
-				<button className={styles.button}>Send</button>
-			</form>
-		</div>
-	);
+	const receivedMessageCallback = (userEmail: string, newChat: Chat) => {
+		console.log(newChat);
+		setChat(newChat);
+	}
+
+    useEffect(() => {
+        if (connection && connection.state !== signalR.HubConnectionState.Connected) {
+            connection.start()
+                .then(() => {
+					console.log('aaaaaaaaaaaaaa');
+                    connection.on("ReceiveMessage", receivedMessageCallback);
+					connection.on("CreateOrGetChat", (userEmail: string, chat: Chat) => {
+						setChat(chat);
+					});
+					try {
+						connection.invoke("CreateNewOrGetExistingChat", {
+							clientEmail: props.ride.clientEmail,
+							driverEmail: props.ride.driverEmail,
+							messages: [] as any,
+							rideCreatedAtTimestamp: props.ride.createdAtTimestamp,
+							status: 0
+						} as Chat);
+					} catch (error) {
+						console.error(error)
+					}
+                })
+                .catch(err => console.log('Connection failed: ', err));
+        }
+    }, [connection]);
+
+	const sendMessage = async () => {
+        if (connection && message) {
+            try {
+                await connection.invoke("SendMessage", {
+					clientEmail: props.ride.clientEmail,
+					driverEmail: props.ride.driverEmail,
+					rideCreadtedAtTimestamp: props.ride.createdAtTimestamp,
+					content: message,
+					timestamp: new Date(),
+					userEmail: props.isClient ? props.ride.clientEmail : props.ride.driverEmail					
+				} as ChatMessage);
+                setMessage('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    };
+
+    return (
+		<div>
+		<input
+			type="text"
+			placeholder="Message"
+			value={message}
+			onChange={(e) => setMessage(e.target.value)}
+		/>
+		<button onClick={sendMessage}>Send</button>
+		<ul>
+			{chat && chat.messages.sort((msg1, msg2) => (new Date(msg1.timestamp)).getTime() - (new Date(msg2.timestamp)).getTime()).map((msg, index) => (
+				<li key={index}><strong>{msg.userEmail}:</strong> {msg.content}</li>
+			))}
+		</ul>
+	</div>
+    );
 };
 
 export default Chat;

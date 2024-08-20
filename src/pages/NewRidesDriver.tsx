@@ -10,6 +10,7 @@ import Modal from '../components/ui/Modal';
 import { DriverStatus } from '../models/Driver';
 import { DriverServiceType } from '../Services/DriverService';
 import { JWTStorageType } from '../Services/JWTStorage';
+import Chat from './Chat';
 
 interface IProps {
 	rideService: RideServiceType;
@@ -27,6 +28,8 @@ const NewRidesDriver: FC<IProps> = (props) => {
 	const [driverStatus, setDriverStatus] = useState<DriverStatus>();
 	const [userRole, setUserRole] = useState('');
 	const [userMail, setUserMail] = useState('');
+
+	const [acceptedRide, setAcceptedRide] = useState<CreateRideResponse|null>(null);
 
 	const arrivalTimeRef = useRef<number | null>(null);
 	const rideDurationRef = useRef<number | null>(null);
@@ -82,14 +85,16 @@ const NewRidesDriver: FC<IProps> = (props) => {
 			Status: RideStatus.ACCEPTED,
 		};
 
-		console.log(updateRequest);
-
 		try {
 			const response = await props.rideService.UpdateRideRequests(
 				updateRequest
 			);
-			console.log(response);
 			if (response !== null) {
+				const acceptedRideRes = response.data as CreateRideResponse;
+				if(acceptedRideRes !== null){
+					setAcceptedRide(acceptedRideRes);
+				}
+
 				const arrival = convertToSecondsDifference(
 					response.data.estimatedDriverArrival
 				);
@@ -144,7 +149,6 @@ const NewRidesDriver: FC<IProps> = (props) => {
 		if (rideDuration === 0) {
 			setIsRideActive(false);
 			setModalOpen(false);
-			console.log('Ride completed');
 		}
 	}, [rideDuration]);
 
@@ -235,6 +239,7 @@ const NewRidesDriver: FC<IProps> = (props) => {
 				{rideDuration !== null && (
 					<p>Countdown to end of ride: {formatTime(rideDuration)}</p>
 				)}
+				{ acceptedRide && <Chat ride={acceptedRide} isClient={false}/>}
 			</Modal>
 		</div>
 	);

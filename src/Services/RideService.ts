@@ -41,7 +41,6 @@ async function CreateNewRide(createRide: CreateRide) {
 				},
 			}
 		);
-		console.log(res);
 		return res;
 	} catch {
 		return null;
@@ -56,7 +55,6 @@ async function GetNewRides() {
 				Authorization: `Bearer ${jtwToken?.token}`,
 			},
 		});
-		console.log(res);
 		return res.data;
 	} catch {
 		return null;
@@ -71,7 +69,6 @@ async function GetUserRides() {
 				Authorization: `Bearer ${jtwToken?.token}`,
 			},
 		});
-		console.log(res);
 		return res.data;
 	} catch {
 		return null;
@@ -90,7 +87,6 @@ async function UpdateRideRequests(updateRideRequest: UpdateRideRequest) {
 				},
 			}
 		);
-		console.log(res);
 		return res;
 	} catch {
 		return null;
@@ -109,7 +105,6 @@ async function GetRideStatus(getRideStatusRequest: GetRideStatusRequest) {
 				},
 			}
 		);
-		console.log(res);
 		return res;
 	} catch {
 		return null;
