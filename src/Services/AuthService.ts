@@ -8,6 +8,7 @@ import { Profile, UpdateUserProfileRequest } from '../models/Auth/Profile';
 const AUTH_CONTROLLER_URL = `${process.env.REACT_APP_BACKEND_URL}/auth`;
 
 async function Login(loginData: LoginData) {
+	console.log(loginData);
 	try {
 		if (loginData.Password) {
 			loginData.Password = sha256(loginData.Password).toString();

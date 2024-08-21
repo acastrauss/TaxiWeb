@@ -13,6 +13,7 @@ import { BlobServiceType } from '../Services/BlobService';
 import { SHA256 } from 'crypto-js';
 import { GoogleAuth } from '../components/auth/GoogleAuth';
 import { GoogleAuthService } from '../Services/Google/GoogleAuth';
+import { useGoogleOAuth } from '@react-oauth/google';
 
 interface IProps {
 	authService: AuthServiceType;
@@ -70,6 +71,9 @@ export const RegisterPage: FC<IProps> = (props) => {
 		}
 	};
 
+	console.log(localImagePath);
+	console.log(typeof localImagePath);
+
 	async function onRegister() {
 		if (!isValid() || !localImagePath || !localImageName) {
 			alert('Please fill out the form');
@@ -100,6 +104,10 @@ export const RegisterPage: FC<IProps> = (props) => {
 		formData.append('fileName', localImageName);
 		const hashedEmail = SHA256(registerFormData.Email).toString();
 
+		console.log(formData);
+		console.log(file);
+		console.log(localImageName);
+		console.log(hashedEmail);
 		const uploadImgRes = await props.blobService.UploadProfileImage(
 			formData,
 			hashedEmail
@@ -129,6 +137,24 @@ export const RegisterPage: FC<IProps> = (props) => {
 		alert('Registration successful, please log in.');
 		navigate(`../${RoutesNames.Login}`);
 	}
+
+	function getFirstPartOfEmail(email: string) {
+		if (!email || typeof email !== 'string') {
+			throw new Error('Invalid email input');
+		}
+		const firstPart = email.split('@')[0];
+		return firstPart;
+	}
+
+	function formatDateForInput(dateString: string) {
+		const date = new Date(dateString);
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	}
+
+	console.log(registerFormData.DateOfBirth);
 
 	return (
 		<div className={styles.form}>
@@ -224,7 +250,7 @@ export const RegisterPage: FC<IProps> = (props) => {
 					});
 				}}
 				placeholder='Date of Birth:'
-				textValue={registerFormData.DateOfBirth}
+				textValue={formatDateForInput(registerFormData.DateOfBirth)}
 				type='date'
 			/>
 
@@ -242,35 +268,42 @@ export const RegisterPage: FC<IProps> = (props) => {
 				type='text'
 			/>
 
-			<RadioButtonInput
-				selectedValue={UserType[registerFormData.Type]}
-				setSelectedValue={(val) => {
-					setRegisterFormData({
-						...registerFormData,
-						Type: UserType[val as keyof typeof UserType],
-					});
-				}}
-				values={[UserType[1], UserType[2]]}
-			/>
+			{!usedGoogleAuth && (
+				<RadioButtonInput
+					selectedValue={UserType[registerFormData.Type]}
+					setSelectedValue={(val) => {
+						setRegisterFormData({
+							...registerFormData,
+							Type: UserType[val as keyof typeof UserType],
+						});
+					}}
+					values={[UserType[1], UserType[2]]}
+				/>
+			)}
 
 			<div>
 				<GoogleAuth
 					googleAuthService={GoogleAuthService}
 					setUserInfo={(userInfo) => {
+						console.log(userInfo);
 						setRegisterFormData({
 							...registerFormData,
 							Password: undefined,
 							Email: userInfo.email,
 							FullName: userInfo.name,
+							Username: getFirstPartOfEmail(userInfo.email),
+							DateOfBirth: new Date().toISOString(),
+							Address: 'Random Address',
+							Type: UserType.Client,
 						});
 						setRegisterFormValid({
-							Address: registerFormData.Address.length > 3,
+							Address: true,
 							DateOfBirth: true,
 							Email: EMAIL_REGEX.test(userInfo.email),
 							FullName: userInfo.name.length > 3,
 							ImagePath: true,
 							Password: true,
-							Username: registerFormData.Username.length > 3,
+							Username: true,
 							Type: true,
 						});
 						setLocalImagePath(userInfo.picture);

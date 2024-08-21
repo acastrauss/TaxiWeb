@@ -17,7 +17,7 @@ interface ChatMessage {
 	rideCreadtedAtTimestamp: number;
 }
 
-interface Chat{
+interface Chat {
 	clientEmail: string;
 	driverEmail: string;
 	rideCreatedAtTimestamp: number;
@@ -31,89 +31,109 @@ interface IProps {
 }
 
 const Chat: FC<IProps> = (props) => {
-	const [chat, setChat] = useState<Chat|null>(null);
-    const [connection, setConnection] = useState<signalR.HubConnection|null>(null);
-    const [message, setMessage] = useState('');
+	const [chat, setChat] = useState<Chat | null>(null);
+	const [connection, setConnection] = useState<signalR.HubConnection | null>(
+		null
+	);
+	const [message, setMessage] = useState('');
 
-    useEffect(() => {
-        const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl(`http://localhost:9068/chathub`, {
-				accessTokenFactory: () => JWTStorage.getJWT()!.token
+	useEffect(() => {
+		const newConnection = new signalR.HubConnectionBuilder()
+			.withUrl(`http://localhost:9068/chathub`, {
+				accessTokenFactory: () => JWTStorage.getJWT()!.token,
 			})
-            .withAutomaticReconnect()
-            .build();
+			.withAutomaticReconnect()
+			.build();
 
-        setConnection(newConnection);
+		setConnection(newConnection);
 
-		if(newConnection){
-			
+		if (newConnection) {
 		}
-    }, []);
+	}, []);
 
 	const receivedMessageCallback = (userEmail: string, newChat: Chat) => {
 		console.log(newChat);
 		setChat(newChat);
-	}
+	};
 
-    useEffect(() => {
-        if (connection && connection.state !== signalR.HubConnectionState.Connected) {
-            connection.start()
-                .then(() => {
+	useEffect(() => {
+		if (
+			connection &&
+			connection.state !== signalR.HubConnectionState.Connected
+		) {
+			connection
+				.start()
+				.then(() => {
 					console.log('aaaaaaaaaaaaaa');
-                    connection.on("ReceiveMessage", receivedMessageCallback);
-					connection.on("CreateOrGetChat", (userEmail: string, chat: Chat) => {
-						setChat(chat);
-					});
+					connection.on('ReceiveMessage', receivedMessageCallback);
+					connection.on(
+						'CreateOrGetChat',
+						(userEmail: string, chat: Chat) => {
+							setChat(chat);
+						}
+					);
 					try {
-						connection.invoke("CreateNewOrGetExistingChat", {
+						connection.invoke('CreateNewOrGetExistingChat', {
 							clientEmail: props.ride.clientEmail,
 							driverEmail: props.ride.driverEmail,
 							messages: [] as any,
-							rideCreatedAtTimestamp: props.ride.createdAtTimestamp,
-							status: 0
+							rideCreatedAtTimestamp:
+								props.ride.createdAtTimestamp,
+							status: 0,
 						} as Chat);
 					} catch (error) {
-						console.error(error)
+						console.error(error);
 					}
-                })
-                .catch(err => console.log('Connection failed: ', err));
-        }
-    }, [connection]);
+				})
+				.catch((err) => console.log('Connection failed: ', err));
+		}
+	}, [connection]);
 
 	const sendMessage = async () => {
-        if (connection && message) {
-            try {
-                await connection.invoke("SendMessage", {
+		if (connection && message) {
+			try {
+				await connection.invoke('SendMessage', {
 					clientEmail: props.ride.clientEmail,
 					driverEmail: props.ride.driverEmail,
 					rideCreadtedAtTimestamp: props.ride.createdAtTimestamp,
 					content: message,
 					timestamp: new Date(),
-					userEmail: props.isClient ? props.ride.clientEmail : props.ride.driverEmail					
+					userEmail: props.isClient
+						? props.ride.clientEmail
+						: props.ride.driverEmail,
 				} as ChatMessage);
-                setMessage('');
-            } catch (err) {
-                console.error(err);
-            }
-        }
-    };
+				setMessage('');
+			} catch (err) {
+				console.error(err);
+			}
+		}
+	};
 
-    return (
+	return (
 		<div>
-		<input
-			type="text"
-			placeholder="Message"
-			value={message}
-			onChange={(e) => setMessage(e.target.value)}
-		/>
-		<button onClick={sendMessage}>Send</button>
-		<ul>
-			{chat && chat.messages.sort((msg1, msg2) => (new Date(msg1.timestamp)).getTime() - (new Date(msg2.timestamp)).getTime()).map((msg, index) => (
-				<li key={index}><strong>{msg.userEmail}:</strong> {msg.content}</li>
-			))}
-		</ul>
-	</div>
-    );
+			<input
+				type='text'
+				placeholder='Message'
+				value={message}
+				onChange={(e) => setMessage(e.target.value)}
+			/>
+			<button onClick={sendMessage}>Send</button>
+			<ul>
+				{chat &&
+					chat.messages
+						.sort(
+							(msg1, msg2) =>
+								new Date(msg1.timestamp).getTime() -
+								new Date(msg2.timestamp).getTime()
+						)
+						.map((msg, index) => (
+							<li key={index}>
+								<strong>{msg.userEmail}:</strong> {msg.content}
+							</li>
+						))}
+			</ul>
+		</div>
+	);
 };
 
 export default Chat;
