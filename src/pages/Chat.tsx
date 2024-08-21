@@ -120,6 +120,7 @@ const Chat: FC<IProps> = (props) => {
 			<button onClick={sendMessage}>Send</button>
 			<ul>
 				{chat &&
+					chat.messages &&
 					chat.messages
 						.sort(
 							(msg1, msg2) =>
