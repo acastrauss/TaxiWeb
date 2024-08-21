@@ -29,6 +29,7 @@ export const LoginPage: FC<IProps> = (props) => {
 		Email: true,
 		Password: true,
 	});
+	const [usedGoogleAuth, setUsedGoogleAuth] = useState(false);
 
 	const isValid = () => {
 		return loginFormValid.Email && loginFormValid.Password;
@@ -57,7 +58,7 @@ export const LoginPage: FC<IProps> = (props) => {
 	useEffect(() => {
 		const isFormValid = loginFormValid.Email && loginFormData.Email;
 
-		if (isFormValid) {
+		if (isFormValid && usedGoogleAuth) {
 			onLogin();
 		}
 	}, [loginFormData, loginFormValid]);
@@ -107,6 +108,7 @@ export const LoginPage: FC<IProps> = (props) => {
 							...loginFormValid,
 							Email: EMAIL_REGEX.test(userInfo.email),
 						});
+						setUsedGoogleAuth(true);
 					}}
 				/>
 			</div>
